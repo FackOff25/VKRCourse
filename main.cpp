@@ -5,4 +5,5 @@
 
 int main(){
     std::cout << "Hello World!" << std::endl;
+    Node<int> node(1);
 }

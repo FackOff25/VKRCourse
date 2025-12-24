@@ -6,9 +6,17 @@
 #include <string>
 #include <vector>
 
-class INodeKey{
-    virtual bool operator<(const INodeKey& other);
+template <typename KeyType> 
+class NodeKey {
+    public:
+        const KeyType key_value;
+        NodeKey(const KeyType& key): key_value(key) {};
+
+        bool operator<(const KeyType& other){
+            return key_value < other;
+        };
 };
+
 
 template <typename data_type> 
 class Parameter{
@@ -18,25 +26,26 @@ class Parameter{
         void set_data(const data_type& _data) {
             data = _data;
         }
-    virtual data_type  get_data();
+        data_type get_data() {
+            return data;
+        };
 };
 
-template <typename NodeKey>
-class INode {
-public:
-    INode(NodeKey _key): key(_key);
-    INode(NodeKey _key, std::vector<NodeKey> _this_storage_neighbours): key(_key), this_storage_neighbours(_this_storage_neighbours);
-    INode(NodeKey _key, std::vector<NodeKey> _this_storage_neighbours, std::map<int,std::vector<NodeKey>> _other_storages_neighbours): key(_key), this_storage_neighbours(_this_storage_neighbours), other_storages_neighbours(_other_storages_neighbours);
+template <typename KeyType>
+class Node {
+    public:
+        Node(KeyType _key): key(NodeKey<KeyType>(_key)) {};
+        Node(NodeKey<KeyType> _key): key(_key) {};
+        Node(NodeKey<KeyType> _key, std::vector<NodeKey<KeyType>> _this_storage_neighbours): key(_key), this_storage_neighbours(_this_storage_neighbours) {};
+        Node(NodeKey<KeyType> _key, std::vector<NodeKey<KeyType>> _this_storage_neighbours, std::map<int,std::vector<NodeKey<KeyType>>> _other_storages_neighbours): key(_key), this_storage_neighbours(_this_storage_neighbours), other_storages_neighbours(_other_storages_neighbours) {};
 
-    static_assert(std::is_base_of<INodeKey, NodeKey>::value, "NodeKey must be a type derived from INodeKey");
-    
-    const NodeKey key;
+        const NodeKey<KeyType> key;
 
-    std::map<std::string, Parameter<char[]>> parameters;
+        std::map<std::string, Parameter<char*>> parameters;
 
-    std::vector<NodeKey> this_storage_neighbours;
+        std::vector<NodeKey<KeyType>> this_storage_neighbours;
 
-    std::map<int,std::vector<NodeKey>> other_storages_neighbours;
+        std::map<int,std::vector<NodeKey<KeyType>>> other_storages_neighbours;
 };
 
 #endif
