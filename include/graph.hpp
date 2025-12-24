@@ -20,15 +20,14 @@ class NodeKey {
 };
 
 
-template <typename data_type> 
 class Parameter{
     private:
-        data_type data;
+        std::vector<std::byte> data;
     public:
-        void set_data(const data_type& _data) {
+        void set_data(const std::vector<std::byte>& _data) {
             data = _data;
         }
-        data_type get_data() {
+        std::vector<std::byte> get_data() {
             return data;
         };
 };
@@ -36,7 +35,7 @@ class Parameter{
 class Edge {
     public:
         const int weight;
-        std::map<std::string, Parameter<char*>> parameters;
+        std::map<std::string, Parameter> parameters;
 };
 
 template <typename KeyType>
@@ -50,7 +49,7 @@ class Node {
         Node(NodeKey<KeyType> _key, std::vector<Neighbour> _this_storage_neighbours, std::map<int,std::vector<Neighbour>> _other_storages_neighbours): key(_key), this_storage_neighbours(_this_storage_neighbours), other_storages_neighbours(_other_storages_neighbours) {};
 
         const NodeKey<KeyType> key;
-        std::map<std::string, Parameter<char*>> parameters;
+        std::map<std::string, Parameter> parameters;
 
         std::vector<Neighbour> this_storage_neighbours;
         std::map<int,std::vector<Neighbour>> other_storages_neighbours;
