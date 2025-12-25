@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include <vector>
 #include <algorithm>
+#include <iostream>
 
 template <typename KeyType>
 class Storage {
@@ -30,8 +31,7 @@ public:
             return false;
         }
         nodes[key] = node;
-        
-        
+
         // Проходим по всем указанным соседям
         for (size_t i = 0; i < node.this_storage_neighbours.size(); ++i) {
             KeyType neighbor_key = node.this_storage_neighbours[i].first.key_value;
@@ -42,17 +42,10 @@ public:
                 continue;
             }
             
-            typename StorageNode::Neighbour neighbor_to(NodeKey<KeyType>(neighbor_key), edge);
-            
+            typename StorageNode::Neighbour neighbor_to(NodeKey<KeyType>(key), edge);
             if (has_node(neighbor_key)) {
                 StorageNode* neighbor_node = get_node(neighbor_key);
-                
-                for (size_t j = 0; j < neighbor_node->this_storage_neighbours.size(); ++j) {
-                    if (neighbor_node->this_storage_neighbours[j].first.key_value == key) {
-                        neighbor_node->this_storage_neighbours.push_back(neighbor_to);
-                        break;
-                    }
-                }                
+                neighbor_node->this_storage_neighbours.push_back(neighbor_to);             
             }
         }
         return true;
@@ -116,6 +109,67 @@ public:
         nodes.clear();
     }
 
+    //
+    // Подсчёты сумм весов
+    //
+
+    // Подсчет суммы весов всех внутренних ребер в хранилище
+    int get_internal_edges_weight_sum() const {
+        // Потенциально будет использоваться с использованием только "граничных" вершин, поэтому нужно отдельно записывать дупликаты, так есть недублирующиеся, которые идут "вглубь" хранилища
+        int total_weight = 0;
+        int duplicate_weight = 0;
+        
+        typename std::unordered_map<KeyType, StorageNode>::const_iterator node_it;
+        for (node_it = nodes.begin(); node_it != nodes.end(); ++node_it) {
+            const StorageNode& node = node_it->second;
+            
+            typename std::vector<typename StorageNode::Neighbour>::const_iterator neighbour_it;
+            for (neighbour_it = node.this_storage_neighbours.begin();
+                neighbour_it != node.this_storage_neighbours.end();
+                ++neighbour_it) {
+                
+                // пропускаем петли
+                if (node.key.key_value == neighbour_it->first.key_value) {
+                    continue;
+                }
+
+                total_weight += neighbour_it->second.weight;
+                if (has_node(neighbour_it->first.key_value)) {
+                    duplicate_weight += neighbour_it->second.weight;
+                }
+            }
+        }
+        
+        return total_weight - duplicate_weight / 2;
+    }
+
+    // Подсчет суммы весов ребер из текущего хранилища в целевое хранилище
+    int get_external_edges_weight_sum_to_storage(int target_storage_id) const {
+        int total_weight = 0;
+        
+        typename std::unordered_map<KeyType, StorageNode>::const_iterator node_it;
+        for (node_it = nodes.begin(); node_it != nodes.end(); ++node_it) {
+            const StorageNode& node = node_it->second;
+            
+            typename std::map<int, std::vector<typename StorageNode::Neighbour>>::const_iterator map_it;
+            map_it = node.other_storages_neighbours.find(target_storage_id);
+            
+            if (map_it != node.other_storages_neighbours.end()) {
+                const std::vector<typename StorageNode::Neighbour>& edges = map_it->second;
+                
+                typename std::vector<typename StorageNode::Neighbour>::const_iterator edge_it;
+                for (edge_it = edges.begin(); edge_it != edges.end(); ++edge_it) {
+                    total_weight += edge_it->second.weight;
+                }
+            }
+        }
+        
+        return total_weight;
+    }
+
+    //
+    // Получение наборов связанных с другим хранилищем
+    //
     
     // Получить подграф узлов, имеющих соседей в указанном хранилище (копии)
     std::vector<StorageNode> get_nodes_with_neighbors_in_storage_copy(int target_storage_id) const {
@@ -137,9 +191,10 @@ public:
         
         return result;
     }
-    
-    size_t count_nodes_with_neighbors_in_storage(int target_storage_id) const {
-        size_t count = 0;
+
+    // Получить подграф узлов, имеющих соседей в указанном хранилище (копии)
+    std::vector<StorageNode> get_nodes_with_neighbors_in_storage_map_copy(int target_storage_id) const {
+        std::vector<StorageNode> result;
         
         typename std::unordered_map<KeyType, StorageNode>::const_iterator it;
         for (it = nodes.begin(); it != nodes.end(); ++it) {
@@ -150,12 +205,12 @@ public:
             
             if (map_it != node.other_storages_neighbours.end()) {
                 if (!map_it->second.empty()) {
-                    ++count;
+                    result.push_back(node);
                 }
             }
         }
         
-        return count;
+        return result;
     }
     
     std::vector<typename StorageNode::Neighbour> get_all_edges_to_storage(int target_storage_id) const {
@@ -178,7 +233,7 @@ public:
     }
     
 
-    int get_edges_to_storage(int target_storage_id) const {
+    int get_total_edges_to_storage(int target_storage_id) const {
         int total = 0;
         
         typename std::unordered_map<KeyType, StorageNode>::const_iterator it;
@@ -195,6 +250,10 @@ public:
         
         return total;
     }
+
+    //
+    // операции над вершинами
+    //
     
     bool add_internal_edge(const KeyType& from_key, 
                           const KeyType& to_key, 

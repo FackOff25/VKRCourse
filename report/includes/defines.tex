@@ -1,0 +1,27 @@
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
+\def\textunderset#1#2{\leavevmode
+  \vtop{\offinterlineskip\halign{%
+    \hfil##\hfil\cr\strut#2\cr\noalign{\kern-.3ex}
+    \hidewidth\strut#1\hidewidth\cr}}}
+\def\signhrule{\raggedright\baselineskip30.0ex \vrule height 0.5pt width30mm depth0pt}
+
+\dottedcontents{section}[2.5em]{\bfseries}{2em}{0.5pc}
+\dottedcontents{subsection}[3em]{}{2em}{0.5pc}
+
+\urlstyle{same}
+
+%***natbib, bibentry***%
+% Следующий код необходим для того, чтобы исправить конфликт между пакетами natbib+bibentry и стилем оформления ссылок согласно российскому ГОСТу cp1251gost705u
+\ifx\undefined\selectlanguageifdefined
+\def\selectlanguageifdefined#1{}\else\fi
+\ifx\undefined\BibEmph
+\def\BibEmph#1{\emph{#1}}\else\fi
+\ifx\undefined\BibUrl
+\def\BibUrl#1{\url{#1}}\else\fi
+\ifx\undefined\BibAnnote
+\def\BibAnnote#1{(#1)}\else\fi
+
+\newcommand{\nonumsection}[1]{
+\section*{#1}
+\addcontentsline{toc}{section}{#1}
+}
