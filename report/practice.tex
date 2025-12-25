@@ -1,0 +1,407 @@
+\section{Практическая часть}
+
+В рамках данной курсовой работы была реализована вычислительная модель для расчёта метрики улучшения распределения $g_v$ для граничных вершин графа согласно алгоритму Кернигана-Лина. Реализация включает в себя три основных компонента:
+\begin{enumerate}
+    \item Классы для представления графовых структур (вершины, рёбра, ключи)
+    \item Класс хранилища (Storage) для управления вершинами и их связями
+    \item Класс оптимизатора (StorageOptimizer) для расчёта метрики $g_v$
+\end{enumerate}
+
+Основной задачей практической части являлось создание инфраструктуры для вычисления функции улучшения распределения, определенной в алгоритме Кернигана-Лина:
+\[
+g_v = \sum_{\substack{(v,u) \in E \\ P[v] \neq P[u]}} w(v,u) - \sum_{\substack{(v,u) \in E \\ P[v] = P[u]}} w(v,u)
+\]
+
+\subsection{Структура проекта и основные зависимости}
+
+Языком разработки был выбран С++ в силу его низкоуровневости и скорости, а также с намереньем в дальнейшим внедрить эти наработки в графовую БД на С++ научного руководителя.
+
+Проект организован в виде набора заголовочных файлов (header files), что соответствует современным подходам разработки на C++. Основные файлы проекта:
+
+\begin{itemize}
+    \item \texttt{graph.hpp} -- содержит базовые классы для представления графовых структур
+    \item \texttt{storage.hpp} -- реализует класс хранилища для управления вершинами
+    \item \texttt{optimizer.hpp} -- содержит реализацию оптимизатора с вычислением метрики $g_v$
+    \item \texttt{main.cpp} -- демонстрационный файл с тестовым сценарием
+\end{itemize}
+
+Ниже представлен релевантный для решения задачи курсовой работы код. Полный код представлен в приложении А.
+
+\subsection{Классы для представления графовых структур (graph.hpp)}
+
+\subsubsection{Класс NodeKey}
+
+Класс \texttt{NodeKey} представляет собой обёртку для ключа вершины графа. Он обеспечивает типобезопасность и возможность использования различных типов данных в качестве ключей (целые числа, строки и т.д.).
+
+\begin{lstlisting}[language=C++, caption=Класс NodeKey в graph.hpp, label=lst:nodekey]
+template <typename KeyType> 
+class NodeKey {
+public:
+    KeyType key_value;
+    NodeKey(): key_value(KeyType()) {};
+    NodeKey(const KeyType& key): key_value(key) {};
+
+    bool operator<(const KeyType& other){
+        return key_value < other;
+    };
+
+    bool operator>(const KeyType& other){
+        return key_value > other;
+    };
+
+    bool operator==(const KeyType& other){
+        return key_value == other;
+    };
+
+    NodeKey<KeyType>& operator=(const NodeKey<KeyType>& other) {
+        key_value = other.key_value;
+        return *this;
+    };
+};
+\end{lstlisting}
+
+Класс \texttt{NodeKey} является шаблонным, что позволяет использовать различные типы данных в качестве ключей вершин. Это важно для обеспечения гибкости при работе с различными типами графовых данных. Известно, что в конечной реализации используются строковые ключи, но была добавлена гибкость для потенциального использования пользовательских гибридных ключей.
+
+\subsubsection{Класс Edge}
+
+Класс \texttt{Edge} представляет ребро графа с весом и дополнительными параметрами.
+
+\begin{lstlisting}[language=C++, caption=Класс Edge в graph.hpp, label=lst:edge]
+class Edge {
+public:
+    int weight;
+    std::map<std::string, Parameter> parameters;
+
+    Edge& operator=(const Edge& other){
+        weight = other.weight;
+        parameters = other.parameters;
+        return *this;
+    };
+};
+\end{lstlisting}
+
+\subsubsection{Класс Node}
+
+Класс \texttt{Node} представляет вершину графа и содержит всю информацию о её связях с другими вершинами.
+
+\begin{lstlisting}[language=C++, caption=Класс Node в graph.hpp (часть 1), label=lst:node1]
+template <typename KeyType>
+class Node {
+public:
+    typedef std::pair<NodeKey<KeyType>,Edge> Neighbour;
+
+    Node(): key(NodeKey<KeyType>()) {};
+    Node(KeyType _key): key(NodeKey<KeyType>(_key)) {};
+    Node(NodeKey<KeyType> _key): key(_key) {};
+    Node(NodeKey<KeyType> _key, std::vector<Neighbour> _this_storage_neighbours): 
+        key(_key), this_storage_neighbours(_this_storage_neighbours) {};
+    Node(NodeKey<KeyType> _key, std::vector<Neighbour> _this_storage_neighbours, 
+         std::map<int,std::vector<Neighbour>> _other_storages_neighbours)
+        : key(_key), 
+          this_storage_neighbours(_this_storage_neighbours), 
+          other_storages_neighbours(_other_storages_neighbours) {};
+    
+    // Конструктор копирования
+    Node(const Node& other) 
+        : key(other.key),
+          parameters(other.parameters),
+          this_storage_neighbours(other.this_storage_neighbours),
+          other_storages_neighbours(other.other_storages_neighbours) {}
+\end{lstlisting}
+
+Класс имеет несколько конструкторов для удобного создания вершин с различными конфигурациями связей. Внутренние связи хранятся в \texttt{this\_storage\_neighbours}, а внешние связи (в другие хранилища) -- в \texttt{other\_storages\_neighbours}.
+
+\begin{lstlisting}[language=C++, caption=Класс Node в graph.hpp (часть 2), label=lst:node2]
+    NodeKey<KeyType> key;
+    std::map<std::string, Parameter> parameters;
+
+    std::vector<Neighbour> this_storage_neighbours;
+    std::map<int,std::vector<Neighbour>> other_storages_neighbours;
+
+    void set_this_storage_neighbours(std::vector<Neighbour> neighbours) const {
+        this_storage_neighbours = neighbours;
+    };
+    
+    void set_other_storages_neighbours(std::map<int,std::vector<Neighbour>> neighbours) const {
+        other_storages_neighbours = neighbours;
+    };
+\end{lstlisting}
+
+Структура данных организована так, чтобы эффективно разделять внутренние и внешние связи. Внешние связи организованы в виде отображения идентификатора хранилища на список соседей в этом хранилище.
+
+\begin{lstlisting}[language=C++, caption=Методы класса Node для расчёта весов рёбер, label=lst:node3]
+    // Получить сумму весов всех внутренних рёбер
+    int get_internal_edges_weight_sum() const {
+        int total_weight = 0;
+        
+        typename std::vector<Neighbour>::const_iterator it;
+        for (it = this_storage_neighbours.begin(); 
+             it != this_storage_neighbours.end(); ++it) {
+            total_weight += it->second.weight;
+        }
+        
+        return total_weight;
+    }
+
+    // Получить сумму весов внешних рёбер в конкретное хранилище
+    int get_external_edges_weight_sum_to_storage(int target_storage_id) const {
+        int total_weight = 0;
+        
+        typename std::map<int, std::vector<Neighbour>>::const_iterator map_it;
+        map_it = other_storages_neighbours.find(target_storage_id);
+        
+        if (map_it != other_storages_neighbours.end()) {
+            const std::vector<Neighbour>& edges = map_it->second;
+            
+            typename std::vector<Neighbour>::const_iterator edge_it;
+            for (edge_it = edges.begin(); edge_it != edges.end(); ++edge_it) {
+                total_weight += edge_it->second.weight;
+            }
+        }
+        
+        return total_weight;
+    }
+\end{lstlisting}
+
+Методы \texttt{get\_internal\_edges\_weight\_sum()} и \texttt{get\_external\_edges\_weight\_sum\_to\_storage()} являются ключевыми для реализации алгоритма Кернигана-Лина, так как они непосредственно вычисляют суммы весов рёбер, необходимые для расчёта метрики $g_v$.
+
+\subsection{Класс хранилища (storage.hpp)}
+
+Класс \texttt{Storage} представляет собой хранилище вершин графа и реализует логику управления внутренними и внешними связями.
+
+\subsubsection{Структура класса Storage}
+
+\begin{lstlisting}[language=C++, caption=Базовая структура класса Storage, label=lst:storage1]
+template <typename KeyType>
+class Storage {
+private:
+    typedef Node<KeyType> StorageNode;
+    int storage_id;
+    std::unordered_map<KeyType, StorageNode> nodes;
+
+public:
+    Storage(int id) : storage_id(id) {}
+    Storage(int id, std::unordered_map<KeyType, StorageNode> _nodes) 
+        : storage_id(id), nodes(_nodes) {}
+    
+    int get_id() const {
+        return storage_id;
+    }
+\end{lstlisting}
+
+Хранилище идентифицируется уникальным \texttt{storage\_id} и содержит вершины в виде хэш-таблицы для обеспечения быстрого доступа по ключу.
+
+\subsubsection{Добавление вершин с автоматическим созданием связей}
+
+\begin{lstlisting}[language=C++, caption=Метод add\_node класса Storage, label=lst:storage2]
+    bool add_node(const StorageNode& node) {
+        KeyType key = node.key.key_value;
+        typename std::unordered_map<KeyType, StorageNode>::iterator it = 
+            nodes.find(key);
+        if (it != nodes.end()) {
+            return false;
+        }
+        nodes[key] = node;
+
+        // Проходим по всем указанным соседям
+        for (size_t i = 0; i < node.this_storage_neighbours.size(); ++i) {
+            KeyType neighbor_key = node.this_storage_neighbours[i].first.key_value;
+            Edge edge = node.this_storage_neighbours[i].second;
+            
+            // Пропускаем петли (ребра к самому себе)
+            if (neighbor_key == key) {
+                continue;
+            }
+            
+            typename StorageNode::Neighbour neighbor_to(NodeKey<KeyType>(key), edge);
+            if (has_node(neighbor_key)) {
+                StorageNode* neighbor_node = get_node(neighbor_key);
+                neighbor_node->this_storage_neighbours.push_back(neighbor_to);             
+            }
+        }
+        return true;
+    }
+\end{lstlisting}
+
+Метод \texttt{add\_node} не только добавляет вершину в хранилище, но и автоматически создает обратные связи с её соседями, что обеспечивает целостность графовой структуры. Это требуется для потокового распределения.
+
+\subsubsection{Методы для работы с граничными вершинами}
+
+\begin{lstlisting}[language=C++, caption=Методы для получения граничных вершин, label=lst:storage3]
+    // Получить подграф узлов, имеющих соседей в указанном хранилище (копии)
+    std::vector<StorageNode> get_nodes_with_neighbors_in_storage_copy(
+        int target_storage_id) const {
+        std::vector<StorageNode> result;
+        
+        typename std::unordered_map<KeyType, StorageNode>::const_iterator it;
+        for (it = nodes.begin(); it != nodes.end(); ++it) {
+            const StorageNode& node = it->second;
+            
+            typename std::map<int, std::vector<typename StorageNode::Neighbour>>::const_iterator map_it;
+            map_it = node.other_storages_neighbours.find(target_storage_id);
+            
+            if (map_it != node.other_storages_neighbours.end()) {
+                if (!map_it->second.empty()) {
+                    result.push_back(node);
+                }
+            }
+        }
+        
+        return result;
+    }
+
+    // Получить подграф узлов, имеющих соседей в указанном хранилище (копии)
+    std::unordered_map<KeyType, StorageNode> 
+    get_nodes_with_neighbors_in_storage_map_copy(int target_storage_id) const {
+        std::unordered_map<KeyType, StorageNode> result;
+        
+        typename std::unordered_map<KeyType, StorageNode>::const_iterator it;
+        for (it = nodes.begin(); it != nodes.end(); ++it) {
+            const StorageNode& node = it->second;
+            
+            typename std::map<int, std::vector<typename StorageNode::Neighbour>>::const_iterator map_it;
+            map_it = node.other_storages_neighbours.find(target_storage_id);
+            
+            if (map_it != node.other_storages_neighbours.end()) {
+                if (!map_it->second.empty()) {
+                    result.insert(*it);
+                }
+            }
+        }
+        
+        return result;
+    }
+\end{lstlisting}
+
+Эти методы реализуют важную оптимизацию алгоритма Кернигана-Лина -- работу только с граничными вершинами (Boundary KL Refinement). Это значительно снижает вычислительную сложность, так как исключает из рассмотрения вершины, не имеющие внешних связей.
+
+\subsubsection{Методы для расчёта суммарных весов рёбер}
+
+\begin{lstlisting}[language=C++, caption=Методы для расчёта весов рёбер в хранилище, label=lst:storage4]
+    // Подсчет суммы весов всех внутренних ребер в хранилище
+    int get_internal_edges_weight_sum() const {
+        int total_weight = 0;
+        int duplicate_weight = 0;
+        
+        typename std::unordered_map<KeyType, StorageNode>::const_iterator node_it;
+        for (node_it = nodes.begin(); node_it != nodes.end(); ++node_it) {
+            const StorageNode& node = node_it->second;
+            
+            typename std::vector<typename StorageNode::Neighbour>::const_iterator neighbour_it;
+            for (neighbour_it = node.this_storage_neighbours.begin();
+                neighbour_it != node.this_storage_neighbours.end();
+                ++neighbour_it) {
+                
+                // пропускаем петли
+                if (node.key.key_value == neighbour_it->first.key_value) {
+                    continue;
+                }
+
+                total_weight += neighbour_it->second.weight;
+                if (has_node(neighbour_it->first.key_value)) {
+                    duplicate_weight += neighbour_it->second.weight;
+                }
+            }
+        }
+        
+        return total_weight - duplicate_weight / 2;
+    }
+
+    // Подсчет суммы весов ребер из текущего хранилища в целевое хранилище
+    int get_external_edges_weight_sum_to_storage(int target_storage_id) const {
+        int total_weight = 0;
+        
+        typename std::unordered_map<KeyType, StorageNode>::const_iterator node_it;
+        for (node_it = nodes.begin(); node_it != nodes.end(); ++node_it) {
+            const StorageNode& node = node_it->second;
+            
+            typename std::map<int, std::vector<typename StorageNode::Neighbour>>::const_iterator map_it;
+            map_it = node.other_storages_neighbours.find(target_storage_id);
+            
+            if (map_it != node.other_storages_neighbours.end()) {
+                const std::vector<typename StorageNode::Neighbour>& edges = map_it->second;
+                
+                typename std::vector<typename StorageNode::Neighbour>::const_iterator edge_it;
+                for (edge_it = edges.begin(); edge_it != edges.end(); ++edge_it) {
+                    total_weight += edge_it->second.weight;
+                }
+            }
+        }
+        
+        return total_weight;
+    }
+\end{lstlisting}
+
+
+\subsection{Класс оптимизатора (optimizer.hpp)}
+
+Класс \texttt{StorageOptimizer} является центральным компонентом реализации алгоритма Кернигана-Лина и отвечает за расчёт метрики улучшения $g_v$.
+
+\subsubsection{Структура класса оптимизатора}
+
+\begin{lstlisting}[language=C++, caption=Класс StorageOptimizer, label=lst:optimizer1]
+template <typename KeyType>
+class StorageOptimizer {
+private:
+    const Storage<KeyType>& storage1;
+    const Storage<KeyType>& storage2;
+    
+public:
+    StorageOptimizer(const Storage<KeyType>& s1, const Storage<KeyType>& s2)
+        : storage1(s1), storage2(s2) {}
+\end{lstlisting}
+
+\subsubsection{Основной метод расчёта метрик}
+
+\begin{lstlisting}[language=C++, caption=Методы расчёта g\_v, label=lst:optimizer2]
+    int calculate_gv(const Node<KeyType>& node, int other_storage_id) const {
+        int internal_edges_weight = node.get_internal_edges_weight_sum();
+        int external_edges_weight = node.get_external_edges_weight_sum_to_storage(
+            other_storage_id);
+        
+        return internal_edges_weight - external_edges_weight;
+    }
+    void calculate_gvs() const {
+        // Получаем граничные вершины для обоих хранилищ
+        std::unordered_map<KeyType, Node<KeyType>> boundary_nodes1 = 
+            storage1.get_nodes_with_neighbors_in_storage_map_copy(storage2.get_id());
+        std::unordered_map<KeyType, Node<KeyType>> boundary_nodes2 = 
+            storage2.get_nodes_with_neighbors_in_storage_map_copy(storage1.get_id());
+
+        typename std::unordered_map<KeyType, Node<KeyType>>::const_iterator it;
+        for (it = boundary_nodes1.begin(); it != boundary_nodes1.end(); ++it) {
+            const Node<KeyType>& node = it->second;
+            
+            std::cout << "Metric for node " << node.key.key_value << " is " 
+                      << calculate_gv(node, storage2.get_id()) << std::endl;
+        }
+
+        for (it = boundary_nodes2.begin(); it != boundary_nodes2.end(); ++it) {
+            const Node<KeyType>& node = it->second;
+            
+            std::cout << "Metric for node " << node.key.key_value << " is " 
+                      << calculate_gv(node, storage1.get_id()) << std::endl;
+        }
+    }
+\end{lstlisting}
+
+Метод \texttt{calculate\_gvs()} демонстрирует практическую реализацию оптимизации Boundary KL (алгоритм работы только с граничными вершинами). Он получает граничные вершины из обоих хранилищ и вычисляет для каждой из них метрику улучшения $g_v$, а метод \texttt{calculate\_gv} занимается непосредственно рассчётом метрики
+
+\subsection{Тестирование}
+
+Для тестирования создаётся простой граф показанный на рисунке \ref{fig:sample_graph}
+\begin{center}
+    \centering
+    \includegraphics[width=.6\linewidth]{extras/graph.png}
+    \captionof{figure}{Граф для тестирования}
+    \label{fig:sample_graph}
+\end{center}
+
+Модуль оптимизатора должен правильно посчитать метрики только для 2-х вершин: 2 и 3, так как они граничные. Их значения соответсвенно равны -2 и 1.
+
+\begin{lstlisting}[caption=Вывод тестовой программы, style=text]
+Metric for node 2 is -2
+Metric for node 3 is 1
+\end{lstlisting}
+
+Результат верен, он показывает, что перемещение вершины 2 повысит связность, но по графу очевидно, что это внесёт только больший дисбаланс в количестве вершин между хранилищами, поэтому вершины и должны меняться местами.

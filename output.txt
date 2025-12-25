@@ -1,0 +1,2 @@
+Metric for node 2 is -2
+Metric for node 3 is 1

@@ -149,4 +149,4 @@ class Node {
         }
 };
 
-#endif // VKR_COURSE_GRAPH
+#endif // VKR\_COURSE\_GRAPH

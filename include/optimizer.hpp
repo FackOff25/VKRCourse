@@ -41,4 +41,4 @@ public:
     }
 };
 
-#endif // VKR_COURSE_OPTIMIZER
+#endif // VKR\_COURSE\_OPTIMIZER

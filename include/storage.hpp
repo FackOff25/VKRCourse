@@ -51,7 +51,7 @@ public:
         return true;
     }
 
-    // Самый простой remove_node: удаляет узел и все связанные с ним ребра
+    // Самый простой remove\_node: удаляет узел и все связанные с ним ребра
     bool remove_node(const KeyType& key) {
         if (!has_node(key)) {
             return false;
@@ -294,7 +294,7 @@ public:
             return false;
         }
         
-        // Ищем ребро в this_storage_neighbours
+        // Ищем ребро в this\_storage\_neighbours
         typename std::vector<typename StorageNode::Neighbour>::iterator it;
         for (it = from_node->this_storage_neighbours.begin(); 
              it != from_node->this_storage_neighbours.end(); 
@@ -410,4 +410,4 @@ public:
 
 };
 
-#endif // VKR_COURSE_STORAGE
+#endif // VKR\_COURSE\_STORAGE
