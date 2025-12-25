@@ -99,6 +99,37 @@ class Node {
             );
         };
 
+        // Получить сумму весов всех внутренних рёбер
+        int get_internal_edges_weight_sum() const {
+            int total_weight = 0;
+            
+            typename std::vector<Neighbour>::const_iterator it;
+            for (it = this_storage_neighbours.begin(); it != this_storage_neighbours.end(); ++it) {
+                total_weight += it->second.weight;
+            }
+            
+            return total_weight;
+        }
+
+        // Получить сумму весов внешних рёбер в конкретное хранилище
+        int get_external_edges_weight_sum_to_storage(int target_storage_id) const {
+            int total_weight = 0;
+            
+            typename std::map<int, std::vector<Neighbour>>::const_iterator map_it;
+            map_it = other_storages_neighbours.find(target_storage_id);
+            
+            if (map_it != other_storages_neighbours.end()) {
+                const std::vector<Neighbour>& edges = map_it->second;
+                
+                typename std::vector<Neighbour>::const_iterator edge_it;
+                for (edge_it = edges.begin(); edge_it != edges.end(); ++edge_it) {
+                    total_weight += edge_it->second.weight;
+                }
+            }
+            
+            return total_weight;
+        }
+
         friend void swap(Node& first, Node& second) noexcept {
             using std::swap;
             

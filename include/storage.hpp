@@ -133,6 +133,8 @@ public:
                     continue;
                 }
 
+                std::cout << "Edge from " << node.key.key_value << " to " << neighbour_it->first.key_value << std::endl;
+
                 total_weight += neighbour_it->second.weight;
                 if (has_node(neighbour_it->first.key_value)) {
                     duplicate_weight += neighbour_it->second.weight;
@@ -193,8 +195,8 @@ public:
     }
 
     // Получить подграф узлов, имеющих соседей в указанном хранилище (копии)
-    std::vector<StorageNode> get_nodes_with_neighbors_in_storage_map_copy(int target_storage_id) const {
-        std::vector<StorageNode> result;
+    std::unordered_map<KeyType, StorageNode> get_nodes_with_neighbors_in_storage_map_copy(int target_storage_id) const {
+        std::unordered_map<KeyType, StorageNode> result;
         
         typename std::unordered_map<KeyType, StorageNode>::const_iterator it;
         for (it = nodes.begin(); it != nodes.end(); ++it) {
@@ -205,7 +207,7 @@ public:
             
             if (map_it != node.other_storages_neighbours.end()) {
                 if (!map_it->second.empty()) {
-                    result.push_back(node);
+                    result.insert(*it);
                 }
             }
         }

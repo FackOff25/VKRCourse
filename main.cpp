@@ -53,29 +53,15 @@ int main() {
     n4.push_back(std::make_pair(NodeKey<int>(3), edge2));
     storage2.add_node(Node<int>(key4, n4));
 
-    Edge edge4{7};  // Ребро между 4 и 5 (storage2)
+    Edge edge4{5};  // Ребро между 4 и 5 (storage2)
     NodeKey<int> key5(5);
     std::vector<typename Node<int>::Neighbour> n5;
-    n5.push_back(std::make_pair(NodeKey<int>(4), edge4));
+    n5.push_back(std::make_pair(NodeKey<int>(3), edge4));
     storage2.add_node(Node<int>(key5, n5));
-    
-    // Вывод информации
-    std::cout << "Storage 1: " << storage1.size() << " вершин" << std::endl;
-    std::cout << "Storage 2: " << storage2.size() << " вершин" << std::endl;
-    std::cout << "Рёбер между хранилищами: " 
-              << storage1.get_total_edges_to_storage(2) << std::endl;
 
     StorageOptimizer optimizer(storage1, storage2);
 
-    int weight1 = storage1.get_internal_edges_weight_sum();
-    int weight2 = storage2.get_internal_edges_weight_sum();
-    int weight3 = storage1.get_external_edges_weight_sum_to_storage(2);
-
-    std::cout << "internal weight 1 = " << weight1 << std::endl;
-    std::cout << "internal weight 2 = " << weight2 << std::endl;
-    std::cout << "external weight   = " << weight3 << std::endl;
-
-    std::cout << "metric = " << optimizer.calculate_gv() << std::endl;
+    optimizer.calculate_gvs();
     
     return 0;
 }
