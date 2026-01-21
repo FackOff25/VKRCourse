@@ -1,6 +1,6 @@
 #include "include/graph.hpp"
-#include "include/storage.hpp"
-#include "include/optimizer.hpp"
+//#include "include/storage.hpp"
+//#include "include/optimizer.hpp"
 
 #include <stdlib.h>
 #include <iostream>
@@ -8,6 +8,7 @@
 #include <utility>
 
 int main() {
+    /*
     // Создаём два хранилища
     Storage<int> storage1(1);
     Storage<int> storage2(2);
@@ -69,6 +70,8 @@ int main() {
     StorageOptimizer optimizer(storage1, storage2);
 
     optimizer.calculate_gvs();
-    
+    */
+    NodeKey<int> key1(1);
+
     return 0;
 }
