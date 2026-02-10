@@ -2,52 +2,56 @@
 #define VKR_COURSE_STORAGE
 
 #include "graph.hpp"
+#include "bus.hpp"
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <map>
 
 template <typename KeyType>
 class Storage {
 private:
     typedef Node<KeyType> StorageNode;
+    typedef NodeKey<KeyType> Key;
     int storage_id;
-    std::unordered_map<KeyType, StorageNode> nodes;
+    std::unordered_map<Key, StorageNode> nodes;
+    std::map<int, std::vector<Edge<KeyType>>> external_edges;
+    IBus* bus;
 
 public:
-    Storage(int id) : storage_id(id) {}
-    Storage(int id, std::unordered_map<KeyType, StorageNode> _nodes) : storage_id(id), nodes(_nodes) {}
+    Storage(IBus* _bus,int id) 
+        :bus(_bus), storage_id(id) {}
+    Storage(IBus* _bus,int id, std::unordered_map<KeyType, StorageNode> _nodes) 
+        :bus(_bus), storage_id(id), nodes(_nodes) {}
     
     int get_id() const {
         return storage_id;
     }
 
-    // добавляет узел и создает двусторонние ребра с указанными соседями
     bool add_node(const StorageNode& node) {
-        KeyType key = node.key.key_value;
+        Key key = node.get_key();
         typename std::unordered_map<KeyType, StorageNode>::iterator it = nodes.find(key);
         if (it != nodes.end()) {
             return false;
         }
         nodes[key] = node;
 
-        // Проходим по всем указанным соседям
-        for (size_t i = 0; i < node.this_storage_neighbours.size(); ++i) {
-            KeyType neighbor_key = node.this_storage_neighbours[i].first.key_value;
-            Edge edge = node.this_storage_neighbours[i].second;
-            
-            // Пропускаем петли (ребра к самому себе)
-            if (neighbor_key == key) {
-                continue;
-            }
-            
-            typename StorageNode::Neighbour neighbor_to(NodeKey<KeyType>(key), edge);
-            if (has_node(neighbor_key)) {
-                StorageNode* neighbor_node = get_node(neighbor_key);
-                neighbor_node->this_storage_neighbours.push_back(neighbor_to);             
+        std::unordered_set external_edges_to_announce;
+        for (std::map<StorageNode, Edge<KeyType>>::iterator it = node.edges.begin(); it != nodes.end(); ++it) {
+            typename std::unordered_map<KeyType, StorageNode>::iterator it2 = nodes.find(it->first.get_key());
+            if (it2 != nodes.end()) {
+                it2->second.add_edge(it->second);
+            } else {
+                int neighbours_storage_id = bus->ask_who_has(it->first.get_key());
+                if (storage_id != -1) {
+                    external_edges[neighbours_storage_id] = it->first.get_key();
+                    external_edges_to_announce.insert(it->second);
+                }
             }
         }
+        bus.announce_add(key, storage_id, external_edges_to_announce);
         return true;
     }
 

@@ -1,5 +1,5 @@
-#ifndef VKR_COURSE_GRAPH
-#define VKR_COURSE_GRAPH
+#ifndef VKR_GRAPH
+#define VKR_GRAPH
 
 #include <stdlib.h>
 #include <map>
@@ -165,6 +165,10 @@ public:
         parameters(other.parameters),
         edges(other.edges) {};
 
+    NodeKey<KeyType> get_key() {
+        return key;
+    }
+
     void add_edge(Edge<KeyType> new_edge) {
         edges[new_edge.get_other(*this)] = new_edge;
     }
@@ -191,4 +195,4 @@ public:
     }
 };
 
-#endif // VKR\_COURSE\_GRAPH
+#endif // VKR\_GRAPH
