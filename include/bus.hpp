@@ -8,9 +8,9 @@
 template <typename KeyType> 
 class SimpleBus : public IBus<KeyType> {
 private:
-
+    std::map<int, Storage<KeyType>>* storages;
 public:
-    int connect_storage(Storage<KeyType> storage);
+    int connect_storage(Storage<KeyType>* storage);
     void send_node(NodeKey<KeyType> key);
     void send_node(NodeKey<KeyType> key, int storage_id);
     int ask_who_has(NodeKey<KeyType> key);
