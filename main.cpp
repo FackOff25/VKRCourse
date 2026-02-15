@@ -1,5 +1,6 @@
 #include "include/graph.hpp"
-//#include "include/storage.hpp"
+#include "include/bus.hpp"
+#include "include/storage.hpp"
 //#include "include/optimizer.hpp"
 
 #include <stdlib.h>

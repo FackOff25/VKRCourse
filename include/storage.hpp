@@ -2,7 +2,7 @@
 #define VKR_COURSE_STORAGE
 
 #include "graph.hpp"
-#include "bus.hpp"
+#include "interface_bus.hpp"
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -17,20 +17,22 @@ private:
     typedef NodeKey<KeyType> Key;
     int storage_id;
     std::unordered_map<Key, StorageNode> nodes;
-    std::map<int, std::vector<Edge<KeyType>>> external_edges;
-    IBus* bus;
+    std::map<int, std::map<KeyType, Edge<KeyType>>> external_edges;
+    IBus<KeyType>* bus = nullptr;
 
 public:
-    Storage(IBus* _bus,int id) 
-        :bus(_bus), storage_id(id) {}
-    Storage(IBus* _bus,int id, std::unordered_map<KeyType, StorageNode> _nodes) 
-        :bus(_bus), storage_id(id), nodes(_nodes) {}
+    Storage(int id) 
+        :storage_id(id) {}
+    Storage(int id, std::unordered_map<KeyType, StorageNode> _nodes) 
+        :storage_id(id), nodes(_nodes) {}
     
+    void connectToBus(IBus<KeyType>* _bus) { bus = _bus; };
+
     int get_id() const {
         return storage_id;
     }
 
-    bool add_node(const StorageNode& node) {
+    std::unordered_set<Edge<KeyType>> add_node(const StorageNode& node) {
         Key key = node.get_key();
         typename std::unordered_map<KeyType, StorageNode>::iterator it = nodes.find(key);
         if (it != nodes.end()) {
@@ -38,23 +40,34 @@ public:
         }
         nodes[key] = node;
 
-        std::unordered_set external_edges_to_announce;
-        for (std::map<StorageNode, Edge<KeyType>>::iterator it = node.edges.begin(); it != nodes.end(); ++it) {
+        std::unordered_set<Edge<KeyType>> external_edges_to_announce;
+        for (typename std::map<StorageNode, Edge<KeyType>>::iterator it = node.edges.begin(); it != nodes.end(); ++it) {
             typename std::unordered_map<KeyType, StorageNode>::iterator it2 = nodes.find(it->first.get_key());
             if (it2 != nodes.end()) {
                 it2->second.add_edge(it->second);
             } else {
                 int neighbours_storage_id = bus->ask_who_has(it->first.get_key());
-                if (storage_id != -1) {
-                    external_edges[neighbours_storage_id] = it->first.get_key();
+                if (neighbours_storage_id != -1) {
+                    external_edges[neighbours_storage_id][it->first.get_key()] = it->second;
                     external_edges_to_announce.insert(it->second);
                 }
             }
         }
-        bus.announce_add(key, storage_id, external_edges_to_announce);
-        return true;
+        return external_edges_to_announce;
     }
 
+    bool add_node_and_announce(const StorageNode& node) {
+        if (bus == nullptr) {
+            return false;
+        }
+        std::unordered_set<Edge<KeyType>> external_edges = add_node(node);
+        if (external_edges != nullptr) {
+            return false;
+        }
+        bus.announce_add(node.get_key(), storage_id, external_edges);
+    }
+
+    /*
     // Самый простой remove\_node: удаляет узел и все связанные с ним ребра
     bool remove_node(const KeyType& key) {
         if (!has_node(key)) {
@@ -411,7 +424,7 @@ public:
         
         return total_weight;
     }
-
+    */
 };
 
 #endif // VKR\_COURSE\_STORAGE
