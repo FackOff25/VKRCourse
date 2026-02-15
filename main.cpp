@@ -100,8 +100,31 @@ int main() {
     bus.send_node(node5, 2);
     bus.send_node(node6, 2);
 
-    std::cout << storage1 << std::endl;
-    std::cout << storage2 << std::endl;
+    //std::cout << storage1 << std::endl;
+    //std::cout << storage2 << std::endl;
 
+    std::cout << "Neigbours of 1:" << std::endl;
+    for (const auto& element : bus.ask_neigbours_to_storage(1, 2)) {
+        std::cout << element << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Neigbours of 2:" << std::endl;
+    for (const auto& element : bus.ask_neigbours_to_storage(2, 1)) {
+        std::cout << element << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "edges between 1 to 2:" << std::endl;
+    for (const auto& element : bus.ask_edges_to_storage(1, 2)) {
+        std::cout << element.second << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "edges between 2 to 1:" << std::endl;
+    for (const auto& element : bus.ask_edges_to_storage(2, 1)) {
+        std::cout << element.second << " ";
+    }
+    std::cout << std::endl;
     return 0;
 }

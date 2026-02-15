@@ -102,6 +102,10 @@ public:
     const NodeKey<KeyType>& get_to() const {
         return to;
     }
+
+    Edge& get_reverted() {
+        return Edge<KeyType>(from, to, weight, directional, parameters);
+    }
     
     Edge& operator=(const Edge& other) {
         if (this != &other) {
@@ -137,7 +141,7 @@ public:
         return true;
     }
     
-    NodeKey<KeyType> get_other(const NodeKey<KeyType>& node) {
+    NodeKey<KeyType> get_other(const NodeKey<KeyType>& node) const {
         if (node == to) {
             return from;
         } else if (node == from) {
@@ -147,7 +151,7 @@ public:
         return node;
     }
 
-    NodeKey<KeyType> get_other(NodeKey<KeyType>* node) {
+    NodeKey<KeyType> get_other(NodeKey<KeyType>* node) const {
         if (*node == to) {
             return from;
         } else if (*node == from) {
@@ -231,6 +235,10 @@ public:
             edges = other.edges;
         }
         return *this;
+    }
+
+    bool operator<(const Node<KeyType>& other) const {
+        return key < other.key;
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Node<KeyType>& node) {
