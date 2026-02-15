@@ -72,7 +72,36 @@ int main() {
 
     optimizer.calculate_gvs();
     */
-    NodeKey<int> key1(1);
+
+    SimpleBus<int> bus;
+    Storage<int> storage1(1);
+    Storage<int> storage2(2);
+    
+    bus.connect_storage(&storage1);
+    bus.connect_storage(&storage2);
+    
+    Node<int> node1(1);
+    Node<int> node2(2);
+    Node<int> node3(3);
+    Node<int> node4(4);
+    Node<int> node5(5);
+    Node<int> node6(6);
+
+    Edge<int> edge1_2(1, 2, 5); node1.add_edge(edge1_2); node2.add_edge(edge1_2);
+    Edge<int> edge2_3(2, 3, 7); node2.add_edge(edge2_3); node3.add_edge(edge2_3);
+    Edge<int> edge3_4(3, 4, 3); node3.add_edge(edge3_4); node4.add_edge(edge3_4);
+    Edge<int> edge3_5(3, 5, 5); node3.add_edge(edge3_5); node5.add_edge(edge3_5);
+    Edge<int> edge5_6(5, 6, 6); node5.add_edge(edge5_6); node6.add_edge(edge5_6);
+
+    bus.send_node(node1, 1);
+    bus.send_node(node2, 1);
+    bus.send_node(node3, 2);
+    bus.send_node(node4, 2);
+    bus.send_node(node5, 2);
+    bus.send_node(node6, 2);
+
+    std::cout << storage1 << std::endl;
+    std::cout << storage2 << std::endl;
 
     return 0;
 }

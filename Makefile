@@ -1,17 +1,25 @@
-all: main.out
+CXX = g++
+CXXFLAGS = -w -Wall -Wextra -std=c++17 -I./include
+TARGET = main.out
+SOURCES = main.cpp
+OBJECTS = $(SOURCES:.cpp=.o)
 
-bus.o: include/interface_bus.hpp include/bus.hpp src/bus.cpp
-	g++ -std=c++17 -Wall -c -o bus.o -g src/bus.cpp
+all: $(TARGET)
 
-main.out: main.cpp bus.o
-	g++ -std=c++17 -Wall -o main.out -g main.cpp bus.o
+$(TARGET): $(OBJECTS)
+	$(CXX) $(OBJECTS) -o $(TARGET)
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.out *.o
-	
-run: main.out
-	./main.out
+	rm -f $(OBJECTS) $(TARGET)
 
-rebuild: clean main.out
+.PHONY: all clean
 
-rerun: rebuild run
+rebuild: clean all
+
+run: $(TARGET)
+	./$(TARGET)
+
+rebuild_and_run: rebuild run
