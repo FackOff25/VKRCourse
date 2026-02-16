@@ -33,14 +33,24 @@
 }
 
 \lstdefinestyle{text}{
-basicstyle=\small\ttfamily,
-columns=flexible,
-breaklines=true,
-breakatwhitespace=true,
-literate={\-}{{-\allowbreak}}1,
-numbers=none,
-postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
-mathescape=false
+  basicstyle=\small\ttfamily,
+  columns=flexible,
+  breaklines=true,
+  breakatwhitespace=true,
+  literate={\-}{{-\allowbreak}}1
+            {,}{{,\allowbreak}}1
+            {.}{{.\allowbreak}}1
+            {;}{{;\allowbreak}}1
+            {:}{{:\allowbreak}}1
+            {!}{{!\allowbreak}}1
+            {?}{{?\allowbreak}}1
+            {)}{{)\allowbreak}}1
+            {(}{{(\allowbreak}}1
+            {'}{{'\allowbreak}}1
+            {\"}{{\"\allowbreak}}1,
+  numbers=none,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+  mathescape=false
 }
 
 \lstdefinelanguage{cypher}
