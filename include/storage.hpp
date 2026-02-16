@@ -17,7 +17,8 @@ typedef Node<KeyType> StorageNode;
 typedef NodeKey<KeyType> Key;
 int storage_id;
 std::map<Key, StorageNode> nodes;
-std::map<int, std::map<Key, Edge<KeyType>>> external_edges;
+// external_edges[storage edge go to][external node][local node] = edge
+std::map<int, std::map<Key, std::map<Key, Edge<KeyType>>>> external_edges;
 IBus<KeyType> *bus = nullptr;
 
 public:
@@ -38,12 +39,36 @@ void get_add_announcement(Key key, int announcer_id, std::set<Edge<KeyType>> edg
         typename std::map<Key, StorageNode>::iterator it = nodes.find(other_key);
         if (it != nodes.end()) {
             it->second.add_edge(*edge_it);
-            external_edges[announcer_id][key.key_value] = *edge_it;
+            typename std::map<Key, std::map<Key, Edge<KeyType>>>::iterator it2 = external_edges[announcer_id].find(key);
+            if (it2 == external_edges[announcer_id].end()){
+                external_edges[announcer_id][key] = std::map<Key, Edge<KeyType>>();
+            }
+            external_edges[announcer_id][key][other_key] = *edge_it;
         }
     }
 };
 
 void get_remove_announcement(Key key, int storage_id) {
+    typename std::map<int, std::map<Key, std::map<Key, Edge<KeyType>>>>::const_iterator storage_it = external_edges.find(storage_id);
+    if (storage_it == external_edges.end()) {
+        return;
+    }
+
+    const std::map<Key, std::map<Key, Edge<KeyType>>>& external_map = storage_it->second;
+    typename std::map<Key, std::map<Key, Edge<KeyType>>>::const_iterator external_node_it = external_map.find(key);
+    if (external_node_it == external_map.end()) {
+        return;
+    }
+
+    const std::map<Key, Edge<KeyType>>& local_to_ext_map = external_node_it->second;
+    for (typename std::map<Key, Edge<KeyType>>::const_iterator local_nodes_it = local_to_ext_map.begin(); local_nodes_it != local_to_ext_map.end(); ++local_nodes_it) {
+        Key local_key = local_nodes_it->first;
+        typename std::map<Key, StorageNode>::iterator node = nodes.find(local_key);
+        if (node != nodes.end()) {
+            node->second.remove_edge_to(key);
+        }
+    }
+    
     // TODO: finish function
 };
 
@@ -74,7 +99,7 @@ std::optional<std::set<Edge<KeyType>>> add_node(const StorageNode& node){
             std::cout << storage_id << " asked for " << neighbor_key.key_value << " answer: " << neighbours_storage_id << std::endl;
             if (neighbours_storage_id != -1) {
                 // Сохраняем внешнее ребро
-                external_edges[neighbours_storage_id][neighbor_key.key_value] = edge;
+                external_edges[neighbours_storage_id][neighbor_key][key] = edge;
                 external_edges_to_announce.insert(edge);
             }
             // Если сосед нигде не найден - игнорируем (возможно, будет добавлен позже)
@@ -98,7 +123,29 @@ bool add_node_and_announce(const StorageNode& node) {
 
 
 bool remove_node(const Key& key) {
-// TODO:
+    if (!has_node(key)) {
+        return false;
+    };
+    StorageNode node = nodes.find(key)->second;
+    nodes.erase(key);
+
+    for (typename std::map<NodeKey<KeyType>, Edge<KeyType>>::iterator edge_it = node.edges.begin(); edge_it != node.edges.end(); ++edge_it) {
+        Key other_key = edge_it->second.get_other(key);
+        typename std::map<Key, StorageNode>::iterator it = nodes.find(other_key);
+        if (it != nodes.end()) {
+            it->second.remove_edge_to(key);
+        }
+    }
+
+    return true;
+};
+
+bool remove_node_and_announce(const Key& key) {
+    if (remove_node(key)) {
+        bus->announce_remove(key, storage_id);
+        return true;
+    }
+    return false;
 };
    
 StorageNode* get_node(const Key& key) {
@@ -134,33 +181,41 @@ void clear() {
 std::set<StorageNode> get_nodes_with_neighbors_in_storage(int target_storage_id) const {
     std::set<StorageNode> result;
 
-    typename std::map<int, std::map<Key, Edge<KeyType>>>::const_iterator storage_it = external_edges.find(target_storage_id);
+    typename std::map<int, std::map<Key,  std::map<Key, Edge<KeyType>>>>::const_iterator storage_it = external_edges.find(target_storage_id);
     if (storage_it == external_edges.end()) {
         return result;
     }
 
-    const std::map<Key, Edge<KeyType>>& edges = storage_it->second;
-    for (typename std::map<Key, Edge<KeyType>>::const_iterator edge_it = edges.begin(); edge_it != edges.end(); ++edge_it) {
-        Key other_key = edge_it->first;
-        Edge<KeyType> edge = edge_it->second;
-        StorageNode node = edge.get_other(other_key);
-        typename std::map<Key, StorageNode>::const_iterator node_it = nodes.find(node.get_key());
-        
-        if (node_it != nodes.end()) {
-            result.insert(node_it->second);
+    const std::map<Key, std::map<Key, Edge<KeyType>>>& node_edges = storage_it->second;
+    for (typename std::map<Key, std::map<Key, Edge<KeyType>>>::const_iterator node_edges_it = node_edges.begin(); node_edges_it != node_edges.end(); ++node_edges_it) {
+        const std::map<Key, Edge<KeyType>>& local_node_edges = node_edges_it->second;
+        for (typename std::map<Key, Edge<KeyType>>::const_iterator local_node_edges_it = local_node_edges.begin(); local_node_edges_it != local_node_edges.end(); ++local_node_edges_it) {
+            Key local_key = local_node_edges_it->first;
+            typename std::map<Key, StorageNode>::const_iterator node_it = nodes.find(local_key);
+            if (node_it != nodes.end()) {
+                result.insert(node_it->second);
+            }
         }
     }
     
     return result;
 }
 
-std::map<Key, Edge<KeyType>> get_all_edges_to_storage(int target_storage_id) const {
-    typename std::map<int, std::map<Key, Edge<KeyType>>>::const_iterator storage_it = external_edges.find(target_storage_id);
+std::set<Edge<KeyType>> get_all_edges_to_storage(int target_storage_id) const {
+    std::set<Edge<KeyType>> result;
+    typename std::map<int, std::map<Key, std::map<Key, Edge<KeyType>>>>::const_iterator storage_it = external_edges.find(target_storage_id);
     if (storage_it == external_edges.end()) {
-        return std::map<Key, Edge<KeyType>>();
+        return std::set<Edge<KeyType>>();
     } else {
-        return storage_it->second;
+        const std::map<Key, std::map<Key, Edge<KeyType>>>& external_nodes_map = storage_it->second;
+        for (typename std::map<Key, std::map<Key, Edge<KeyType>>>::const_iterator node_edges_it = external_nodes_map.begin(); node_edges_it != external_nodes_map.end(); ++node_edges_it) {
+            const std::map<Key, Edge<KeyType>>& node_edge_map = node_edges_it->second;
+            for (typename std::map<Key, Edge<KeyType>>::const_iterator edges_it = node_edge_map.begin(); edges_it != node_edge_map.end(); ++edges_it) {
+                result.insert(edges_it->second);
+            }
+        }
     }
+    return result;
 }
 
 /*

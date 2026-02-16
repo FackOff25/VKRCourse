@@ -5,43 +5,7 @@
 
 #include <stdlib.h>
 #include <iostream>
-
-/*template <typename KeyType>
-class StorageOptimizer0 {
-private:
-    const Storage<KeyType>& storage1;
-    const Storage<KeyType>& storage2;
-
-    int calculate_gv(const Node<KeyType>& node, int other_storage_id) const {
-        int internal_edges_weight = node.get_internal_edges_weight_sum();
-        int external_edges_weight = node.get_external_edges_weight_sum_to_storage(other_storage_id);
-        
-        return internal_edges_weight - external_edges_weight;
-    }
-    
-public:
-    StorageOptimizer0(const Storage<KeyType>& s1, const Storage<KeyType>& s2)
-        : storage1(s1), storage2(s2) {}
-
-    void calculate_gvs() const {
-        // Получаем граничные вершины для обоих хранилищ
-        std::unordered_map<KeyType, Node<KeyType>> boundary_nodes1 = storage1.get_nodes_with_neighbors_in_storage_map_copy(storage2.get_id());
-        std::unordered_map<KeyType, Node<KeyType>> boundary_nodes2 = storage2.get_nodes_with_neighbors_in_storage_map_copy(storage1.get_id());
-
-        typename std::unordered_map<KeyType, Node<KeyType>>::const_iterator it;
-        for (it = boundary_nodes1.begin(); it != boundary_nodes1.end(); ++it) {
-            const Node<KeyType>& node = it->second;
-            
-            std::cout << "Metric for node " << node.key.key_value << " is " << calculate_gv(node, storage2.get_id()) << std::endl;
-        }
-
-        for (it = boundary_nodes2.begin(); it != boundary_nodes2.end(); ++it) {
-            const Node<KeyType>& node = it->second;
-            
-            std::cout << "Metric for node " << node.key.key_value << " is " << calculate_gv(node, storage1.get_id()) << std::endl;
-        }
-    }
-};*/
+#include <map>
 
 template <typename KeyType>
 class ExternalStorageOptimizer {
@@ -70,7 +34,8 @@ public:
 ExternalStorageOptimizer(IBus<KeyType>* _bus)
     : bus(_bus) {}
 
-void calculate_gvs(int storage1, int storage2) const {
+std::map<int, std::map<Node<KeyType>, float>> calculate_gvs(int storage1, int storage2) const {
+    std::map<int, std::map<Node<KeyType>, float>> result;
     // Получаем граничные вершины для обоих хранилищ
     std::set<Node<KeyType>> boundary_nodes1 = bus->ask_neigbours_to_storage(storage1, storage2);
     std::set<Node<KeyType>> boundary_nodes2 = bus->ask_neigbours_to_storage(storage2, storage1);
@@ -78,18 +43,19 @@ void calculate_gvs(int storage1, int storage2) const {
     std::map<NodeKey<KeyType>, Edge<KeyType>> boundary_edges1 = bus->ask_edges_to_storage(1, 2);
     std::map<NodeKey<KeyType>, Edge<KeyType>> boundary_edges2 = bus->ask_edges_to_storage(2, 1);
 
+    result[storage1] = std::map<Node<KeyType>, float>();
     typename std::set<Node<KeyType>>::const_iterator it;
     for (it = boundary_nodes1.begin(); it != boundary_nodes1.end(); ++it) {
         const Node<KeyType>& node = *it;
-        
-        std::cout << "Metric for node " << node.get_key().key_value << " is " << calculate_gv(node, boundary_edges1) << std::endl;
+        result[storage1][node.get_key()] = calculate_gv(node, boundary_edges1);
     }
 
+    result[storage2] = std::map<Node<KeyType>, float>();
     for (it = boundary_nodes2.begin(); it != boundary_nodes2.end(); ++it) {
         const Node<KeyType>& node = *it;
-        
-        std::cout << "Metric for node " << node.get_key().key_value << " is " << calculate_gv(node, boundary_edges2) << std::endl;
+        result[storage2][node.get_key()] = calculate_gv(node, boundary_edges2);
     }
+    return result;
 }
 };
 

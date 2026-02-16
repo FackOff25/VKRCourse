@@ -228,6 +228,15 @@ public:
         edges.merge(new_edges);
     }
 
+    bool remove_edge_to(NodeKey<KeyType> neighbour_key) {
+        return edges.erase(neighbour_key);
+    }
+
+    bool remove_edge(Edge<KeyType> removing_edge) {
+        NodeKey<KeyType> current_key = this->get_key();
+        return edges.erase(removing_edge.get_other(current_key));
+    }
+
     Node& operator=(const Node& other) {
         if (this != &other) {
             key = other.key;
