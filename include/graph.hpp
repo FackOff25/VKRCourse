@@ -61,7 +61,7 @@ public:
 template <typename KeyType>
 class Edge {
 private:
-    int weight;
+    float weight;
     bool directional;
     std::map<std::string, Parameter> parameters;
     NodeKey<KeyType> from;
@@ -75,11 +75,11 @@ public:
         : weight(edge_weight), directional(false), from(from_node), to(to_node) {}
     
     Edge(const NodeKey<KeyType>& from_node, const NodeKey<KeyType>& to_node, 
-        int edge_weight, bool is_directional) 
+        float edge_weight, bool is_directional) 
         : weight(edge_weight), directional(is_directional), from(from_node), to(to_node) {}
     
     Edge(const NodeKey<KeyType>& from_node, const NodeKey<KeyType>& to_node,
-        int edge_weight, bool is_directional, const std::map<std::string, Parameter>& params)
+        float edge_weight, bool is_directional, const std::map<std::string, Parameter>& params)
         : weight(edge_weight), directional(is_directional), parameters(params), 
         from(from_node), to(to_node) {}
     
@@ -87,7 +87,7 @@ public:
         : weight(other.weight), directional(other.directional), 
         parameters(other.parameters), from(other.from), to(other.to) {}
 
-    int get_weight() const {
+    float get_weight() const {
         return weight;
     }
     bool is_directional() const {

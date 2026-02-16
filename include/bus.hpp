@@ -36,7 +36,7 @@ bool send_node(const Node<KeyType>& node, int storage_id) override {
 
 int ask_who_has(int asker_id, NodeKey<KeyType> key) override{
     for (typename std::map<int, Storage<KeyType>*>::iterator it = storages.begin(); it != storages.end(); ++it) {
-        if (it->second != nullptr && it->second->has(key)) {
+        if (it->second != nullptr && it->second->has_node(key)) {
             return it->first;
         };
     }
@@ -53,7 +53,7 @@ void announce_add(NodeKey<KeyType> key, int storage_id, std::set<Edge<KeyType>> 
 
 void announce_remove(NodeKey<KeyType> key, int storage_id) override {
     for (typename std::map<int, Storage<KeyType>*>::iterator it = storages.begin(); it != storages.end(); ++it) {
-        if (it->second != nullptr && it->second->has(key)) {
+        if (it->second != nullptr) {
             it->second->get_remove_announcement(key, storage_id);
         };
     }
@@ -68,9 +68,9 @@ std::set<Node<KeyType>> ask_neigbours_to_storage(int source, int target) {
 }
 
 // запрашивает у source рёбра, идущие в target
-std::map<KeyType, Edge<KeyType>> ask_edges_to_storage(int source, int target) {
+std::map<NodeKey<KeyType>, Edge<KeyType>> ask_edges_to_storage(int source, int target) {
     if (storages.find(source) == storages.end()) {
-        return std::map<KeyType, Edge<KeyType>>();
+        return std::map<NodeKey<KeyType>, Edge<KeyType>>();
     }
     return storages[source]->get_all_edges_to_storage(target);
 }

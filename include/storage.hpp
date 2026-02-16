@@ -17,13 +17,13 @@ typedef Node<KeyType> StorageNode;
 typedef NodeKey<KeyType> Key;
 int storage_id;
 std::map<Key, StorageNode> nodes;
-std::map<int, std::map<KeyType, Edge<KeyType>>> external_edges;
+std::map<int, std::map<Key, Edge<KeyType>>> external_edges;
 IBus<KeyType> *bus = nullptr;
 
 public:
 Storage(int id) 
     :storage_id(id) {}
-Storage(int id, std::map<KeyType, StorageNode> _nodes) 
+Storage(int id, std::map<Key, StorageNode> _nodes) 
     :storage_id(id), nodes(_nodes) {}
 
 int get_id() const { return storage_id; };
@@ -97,40 +97,12 @@ bool add_node_and_announce(const StorageNode& node) {
 };
 
 
-bool remove_node(const KeyType& key) {
-    if (!has_node(key)) {
-        return false;
-    }
-    
-    // Получаем узел для удаления
-    StorageNode* node_to_remove = get_node(key);
-    if (node_to_remove == nullptr) {
-        return false;
-    }
-    
-    // Проходим по всем соседям удаляемого узла
-    for (size_t i = 0; i < node_to_remove->this_storage_neighbours.size(); ++i) {
-        KeyType neighbor_key = node_to_remove->this_storage_neighbours[i].first.key_value;
-        
-        // Ищем и удаляем обратное ребро у соседа
-        StorageNode* neighbor = get_node(neighbor_key);
-        if (neighbor != nullptr) {
-            for (size_t j = 0; j < neighbor->this_storage_neighbours.size(); ++j) {
-                if (neighbor->this_storage_neighbours[j].first.key_value == key) {
-                    neighbor->this_storage_neighbours.erase(neighbor->this_storage_neighbours.begin() + j);
-                    break;
-                }
-            }
-        }
-    }
-    
-    // Удаляем сам узел из хранилища
-    nodes.erase(key);
-    return true;
+bool remove_node(const Key& key) {
+// TODO:
 };
    
-StorageNode* get_node(const KeyType& key) {
-    typename std::map<KeyType, StorageNode>::iterator it = nodes.find(key);
+StorageNode* get_node(const Key& key) {
+    typename std::map<Key, StorageNode>::iterator it = nodes.find(key);
     if (it != nodes.end()) {
         return &(it->second);
     }
@@ -138,12 +110,11 @@ StorageNode* get_node(const KeyType& key) {
 };
 
 
-bool has_node(const KeyType& key) const {
-    typename std::map<KeyType, StorageNode>::const_iterator it = nodes.find(key);
-    return it != nodes.end();
+bool has_node(const Key& key) const {
+    return nodes.find(key) != nodes.end();
 }
 
-const std::map<KeyType, StorageNode>& get_all_nodes() const {
+const std::map<Key, StorageNode>& get_all_nodes() const {
     return nodes;
 }
 
@@ -163,14 +134,14 @@ void clear() {
 std::set<StorageNode> get_nodes_with_neighbors_in_storage(int target_storage_id) const {
     std::set<StorageNode> result;
 
-    typename std::map<int, std::map<KeyType, Edge<KeyType>>>::const_iterator storage_it = external_edges.find(target_storage_id);
+    typename std::map<int, std::map<Key, Edge<KeyType>>>::const_iterator storage_it = external_edges.find(target_storage_id);
     if (storage_it == external_edges.end()) {
         return result;
     }
 
-    const std::map<KeyType, Edge<KeyType>>& edges = storage_it->second;
-    for (typename std::map<KeyType, Edge<KeyType>>::const_iterator edge_it = edges.begin(); edge_it != edges.end(); ++edge_it) {
-        KeyType other_key = edge_it->first;
+    const std::map<Key, Edge<KeyType>>& edges = storage_it->second;
+    for (typename std::map<Key, Edge<KeyType>>::const_iterator edge_it = edges.begin(); edge_it != edges.end(); ++edge_it) {
+        Key other_key = edge_it->first;
         Edge<KeyType> edge = edge_it->second;
         StorageNode node = edge.get_other(other_key);
         typename std::map<Key, StorageNode>::const_iterator node_it = nodes.find(node.get_key());
@@ -183,10 +154,10 @@ std::set<StorageNode> get_nodes_with_neighbors_in_storage(int target_storage_id)
     return result;
 }
 
-std::map<KeyType, Edge<KeyType>> get_all_edges_to_storage(int target_storage_id) const {
-    typename std::map<int, std::map<KeyType, Edge<KeyType>>>::const_iterator storage_it = external_edges.find(target_storage_id);
+std::map<Key, Edge<KeyType>> get_all_edges_to_storage(int target_storage_id) const {
+    typename std::map<int, std::map<Key, Edge<KeyType>>>::const_iterator storage_it = external_edges.find(target_storage_id);
     if (storage_it == external_edges.end()) {
-        return std::map<KeyType, Edge<KeyType>>();
+        return std::map<Key, Edge<KeyType>>();
     } else {
         return storage_it->second;
     }
