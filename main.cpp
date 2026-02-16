@@ -24,7 +24,7 @@ int main() {
     Node<int> node6(6);
 
     Edge<int> edge1_2(1, 2, 5); node1.add_edge(edge1_2); node2.add_edge(edge1_2);
-    Edge<int> edge2_3(2, 3, 7); node2.add_edge(edge2_3); node3.add_edge(edge2_3);
+    Edge<int> edge2_3(2, 3, 5); node2.add_edge(edge2_3); node3.add_edge(edge2_3);
     Edge<int> edge3_4(3, 4, 3); node3.add_edge(edge3_4); node4.add_edge(edge3_4);
     Edge<int> edge3_5(3, 5, 5); node3.add_edge(edge3_5); node5.add_edge(edge3_5);
     Edge<int> edge5_6(5, 6, 6); node5.add_edge(edge5_6); node6.add_edge(edge5_6);
@@ -62,18 +62,21 @@ int main() {
         std::cout << element << " ";
     }
     std::cout << std::endl;
-    
-    //ExternalStorageOptimizer<int> optimizer(&bus);
 
-    //std::map<int, std::map<Node<int>, float>> gvs = optimizer.calculate_gvs(1,2);
-
-    Node<int> removed = bus.request_node(2);
+    /*Node<int> removed = bus.request_node(2);
     bus.send_remove_node(2);
 
     std::cout << storage1 << std::endl;
     std::cout << storage2 << std::endl;
 
     bus.send_add_node(removed, 2);
+
+    std::cout << storage1 << std::endl;
+    std::cout << storage2 << std::endl;*/
+
+    ExternalStorageOptimizer<int> optimizer(&bus);
+
+    optimizer.optimize(1, 2, 2);
 
     std::cout << storage1 << std::endl;
     std::cout << storage2 << std::endl;
