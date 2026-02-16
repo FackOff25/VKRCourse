@@ -31,6 +31,7 @@ float calculate_gv(const Node<KeyType>& node, std::set<Edge<KeyType>> boundary_e
         const Edge<KeyType>& edge = edge_it->second;
         if (boundary_edges_map.find(neighbor_key) != boundary_edges_map.end()) {
             external_edges_weight += edge.get_weight();
+            std::cout << "node: " << node.get_key().key_value << " external neighbour: " << neighbor_key.key_value << std::endl;
         } else {
             internal_edges_weight += edge.get_weight();
         }
@@ -47,6 +48,7 @@ std::map<int, std::set<Node<KeyType>>> get_negative_gvs(std::map<int, std::map<N
         const std::map<Node<KeyType>, float>& nodes = it->second;
         typename std::map<Node<KeyType>, float>::const_iterator it2;
         for (it2 = nodes.begin(); it2 != nodes.end(); ++it2) {
+            std::cout << "storage: " << it->first << " node: " << it2->first << " gv: " << it2->second << std::endl;
             if (it2->second < 0) {
                 result[it->first].insert(it2->first);
             }
@@ -88,10 +90,11 @@ std::map<int, std::map<Node<KeyType>, float>> calculate_gvs(int storage1, int st
 
 void optimize(int storage1, int storage2, int iterations_limit = 5) {
     if (iterations_limit == 0) return;
-    
+
     int iteration = 0;
     std::map<int, std::set<Node<KeyType>>> negative_gvs = get_negative_gvs(calculate_gvs(storage1, storage2));
     do {
+        std::cout << "iteration " << iteration << std::endl;
         typename std::map<int, std::set<Node<KeyType>>>::iterator map_it;
         for (map_it = negative_gvs.begin(); map_it != negative_gvs.end(); ++map_it) {
             int this_storage = map_it->first;
@@ -101,7 +104,7 @@ void optimize(int storage1, int storage2, int iterations_limit = 5) {
             for (set_it = nodes.begin(); set_it != nodes.end(); ++set_it) {
                 const Node<KeyType>& node = *set_it;
                 Node<int> removed = bus->request_node(node.get_key());
-                bus->send_remove_node(removed.get_key(), this_storage);
+                bus->send_remove_node(removed.get_key());
                 bus->send_add_node(removed, other_storage);
             }
         }

@@ -17,7 +17,7 @@ typedef Node<KeyType> StorageNode;
 typedef NodeKey<KeyType> Key;
 int storage_id;
 std::map<Key, StorageNode> nodes;
-// external_edges[storage edge go to][external node][local node] = edge
+// external\_edges[storage edge go to][external node][local node] = edge
 std::map<int, std::map<Key, std::map<Key, Edge<KeyType>>>> external_edges;
 IBus<KeyType> *bus = nullptr;
 
@@ -29,7 +29,6 @@ Storage(int id, std::map<Key, StorageNode> _nodes)
 
 int get_id() const { return storage_id; };
 void connect_to_bus(IBus<KeyType>* _bus) { bus = _bus; };
-bool has(Key key) {std::cout << storage_id << " was asked for " << key.key_value << " answer: " << (nodes.find(key) != nodes.end()) << std::endl; return nodes.find(key) != nodes.end(); };
 
 void get_add_announcement(Key key, int announcer_id, std::set<Edge<KeyType>> edges) {
     if (announcer_id == storage_id) return;
@@ -48,20 +47,27 @@ void get_add_announcement(Key key, int announcer_id, std::set<Edge<KeyType>> edg
     }
 };
 
-void get_remove_announcement(Key key, int storage_id) {
-    typename std::map<int, std::map<Key, std::map<Key, Edge<KeyType>>>>::const_iterator storage_it = external_edges.find(storage_id);
+void get_remove_announcement(Key key, int announcer_id) {
+    if (announcer_id == storage_id) return;
+    
+    typename std::map<int, std::map<Key, std::map<Key, Edge<KeyType>>>>::iterator storage_it = 
+        external_edges.find(announcer_id);
     if (storage_it == external_edges.end()) {
         return;
     }
 
-    const std::map<Key, std::map<Key, Edge<KeyType>>>& external_map = storage_it->second;
-    typename std::map<Key, std::map<Key, Edge<KeyType>>>::const_iterator external_node_it = external_map.find(key);
+    std::map<Key, std::map<Key, Edge<KeyType>>>& external_map = storage_it->second;
+    typename std::map<Key, std::map<Key, Edge<KeyType>>>::iterator external_node_it = 
+        external_map.find(key);
     if (external_node_it == external_map.end()) {
         return;
     }
 
-    const std::map<Key, Edge<KeyType>>& local_to_ext_map = external_node_it->second;
-    for (typename std::map<Key, Edge<KeyType>>::const_iterator local_nodes_it = local_to_ext_map.begin(); local_nodes_it != local_to_ext_map.end(); ++local_nodes_it) {
+    std::map<Key, Edge<KeyType>>& local_to_ext_map = external_node_it->second;
+    
+    // Удаляем рёбра из локальных узлов
+    for (typename std::map<Key, Edge<KeyType>>::iterator local_nodes_it = local_to_ext_map.begin(); 
+         local_nodes_it != local_to_ext_map.end(); ++local_nodes_it) {
         Key local_key = local_nodes_it->first;
         typename std::map<Key, StorageNode>::iterator node = nodes.find(local_key);
         if (node != nodes.end()) {
@@ -69,8 +75,14 @@ void get_remove_announcement(Key key, int storage_id) {
         }
     }
     
-    // TODO: finish function
-};
+    // Удаляем запись из external\_edges
+    external_map.erase(external_node_it);
+    
+    // Если для этого хранилища не осталось внешних узлов, удаляем запись
+    if (external_map.empty()) {
+        external_edges.erase(storage_it);
+    }
+}
 
 std::optional<std::set<Edge<KeyType>>> add_node(const StorageNode& node){ 
     Key key = node.get_key();
@@ -136,6 +148,41 @@ bool remove_node(const Key& key) {
             it->second.remove_edge_to(key);
         }
     }
+
+    // Удаляем все внешние рёбра, связанные с этим узлом
+    typename std::map<int, std::map<Key, std::map<Key, Edge<KeyType>>>>::iterator ext_storage_it;
+    for (ext_storage_it = external_edges.begin(); ext_storage_it != external_edges.end(); ) {
+        std::map<Key, std::map<Key, Edge<KeyType>>>& ext_nodes = ext_storage_it->second;
+        
+        // Удаляем записи, где наш узел является локальным
+        typename std::map<Key, std::map<Key, Edge<KeyType>>>::iterator ext_node_it;
+        for (ext_node_it = ext_nodes.begin(); ext_node_it != ext_nodes.end(); ) {
+            std::map<Key, Edge<KeyType>>& local_edges = ext_node_it->second;
+            
+            // Удаляем все рёбра, где локальный ключ - наш удаляемый узел
+            typename std::map<Key, Edge<KeyType>>::iterator edge_it = local_edges.find(key);
+            if (edge_it != local_edges.end()) {
+                local_edges.erase(edge_it);
+            }
+            
+            // Если после удаления для этого внешнего узла не осталось рёбер, удаляем запись
+            if (local_edges.empty()) {
+                ext_nodes.erase(ext_node_it++);
+            } else {
+                ++ext_node_it;
+            }
+        }
+        
+        // Если для этого хранилища не осталось внешних узлов, удаляем запись
+        if (ext_nodes.empty()) {
+            external_edges.erase(ext_storage_it++);
+        } else {
+            ++ext_storage_it;
+        }
+    }
+    
+    // Удаляем сам узел
+    nodes.erase(node.get_key());
 
     return true;
 };
@@ -218,235 +265,6 @@ std::set<Edge<KeyType>> get_all_edges_to_storage(int target_storage_id) const {
     return result;
 }
 
-/*
-// Получить подграф узлов, имеющих соседей в указанном хранилище (копии)
-std::map<KeyType, StorageNode> get_nodes_with_neighbors_in_storage_map_copy(int target_storage_id) const {
-    std::map<KeyType, StorageNode> result;
-    
-    typename std::map<KeyType, StorageNode>::const_iterator it;
-    for (it = nodes.begin(); it != nodes.end(); ++it) {
-        const StorageNode& node = it->second;
-        
-        typename std::map<int, std::vector<typename StorageNode::Neighbour>>::const_iterator map_it;
-        map_it = node.other_storages_neighbours.find(target_storage_id);
-        
-        if (map_it != node.other_storages_neighbours.end()) {
-            if (!map_it->second.empty()) {
-                result.insert(*it);
-            }
-        }
-    }
-    
-    return result;
-}
-
-int get_total_edges_to_storage(int target_storage_id) const {
-    int total = 0;
-    
-    typename std::map<KeyType, StorageNode>::const_iterator it;
-    for (it = nodes.begin(); it != nodes.end(); ++it) {
-        const StorageNode& node = it->second;
-        
-        typename std::map<int, std::vector<typename StorageNode::Neighbour>>::const_iterator map_it;
-        map_it = node.other_storages_neighbours.find(target_storage_id);
-        
-        if (map_it != node.other_storages_neighbours.end()) {
-            total += map_it->second.size();
-        }
-    }
-    
-    return total;
-}
-
-/*
-//
-// Подсчёты сумм весов
-//
-
-// Подсчет суммы весов всех внутренних ребер в хранилище
-int get_internal_edges_weight_sum() const {
-    // Потенциально будет использоваться с использованием только "граничных" вершин, поэтому нужно отдельно записывать дупликаты, так есть недублирующиеся, которые идут "вглубь" хранилища
-    int total_weight = 0;
-    int duplicate_weight = 0;
-    
-    typename std::map<KeyType, StorageNode>::const_iterator node_it;
-    for (node_it = nodes.begin(); node_it != nodes.end(); ++node_it) {
-        const StorageNode& node = node_it->second;
-        
-        typename std::vector<typename StorageNode::Neighbour>::const_iterator neighbour_it;
-        for (neighbour_it = node.this_storage_neighbours.begin();
-            neighbour_it != node.this_storage_neighbours.end();
-            ++neighbour_it) {
-            
-            // пропускаем петли
-            if (node.key.key_value == neighbour_it->first.key_value) {
-                continue;
-            }
-
-            std::cout << "Edge from " << node.key.key_value << " to " << neighbour_it->first.key_value << std::endl;
-
-            total_weight += neighbour_it->second.weight;
-            if (has_node(neighbour_it->first.key_value)) {
-                duplicate_weight += neighbour_it->second.weight;
-            }
-        }
-    }
-    
-    return total_weight - duplicate_weight / 2;
-}
-
-// Подсчет суммы весов ребер из текущего хранилища в целевое хранилище
-int get_external_edges_weight_sum_to_storage(int target_storage_id) const {
-    int total_weight = 0;
-    
-    typename std::map<KeyType, StorageNode>::const_iterator node_it;
-    for (node_it = nodes.begin(); node_it != nodes.end(); ++node_it) {
-        const StorageNode& node = node_it->second;
-        
-        typename std::map<int, std::vector<typename StorageNode::Neighbour>>::const_iterator map_it;
-        map_it = node.other_storages_neighbours.find(target_storage_id);
-        
-        if (map_it != node.other_storages_neighbours.end()) {
-            const std::vector<typename StorageNode::Neighbour>& edges = map_it->second;
-            
-            typename std::vector<typename StorageNode::Neighbour>::const_iterator edge_it;
-            for (edge_it = edges.begin(); edge_it != edges.end(); ++edge_it) {
-                total_weight += edge_it->second.weight;
-            }
-        }
-    }
-    
-    return total_weight;
-}
-
-//
-// операции над вершинами
-//
-
-bool add_internal_edge(const KeyType& from_key, 
-                        const KeyType& to_key, 
-                        const Edge& edge) {
-    StorageNode* from_node = get_node(from_key);
-    StorageNode* to_node = get_node(to_key);
-    
-    if (from_node == nullptr || to_node == nullptr) {
-        return false;
-    }
-    
-    typename StorageNode::Neighbour neighbor(NodeKey<KeyType>(to_key), edge);
-    from_node->this_storage_neighbours.push_back(neighbor);
-    return true;
-}
-
-bool add_external_edge(const KeyType& from_key,
-                        int target_storage_id,
-                        const KeyType& to_key,
-                        const Edge& edge) {
-    StorageNode* from_node = get_node(from_key);
-    
-    if (from_node == nullptr) {
-        return false;
-    }
-    
-    typename StorageNode::Neighbour neighbor(NodeKey<KeyType>(to_key), edge);
-    from_node->other_storages_neighbours[target_storage_id].push_back(neighbor);
-    return true;
-}
-
-// Удалить внутреннее ребро
-bool remove_internal_edge(const KeyType& from_key, const KeyType& to_key) {
-    StorageNode* from_node = get_node(from_key);
-    if (from_node == nullptr) {
-        return false;
-    }
-    
-    // Ищем ребро в this\_storage\_neighbours
-    typename std::vector<typename StorageNode::Neighbour>::iterator it;
-    for (it = from_node->this_storage_neighbours.begin(); 
-            it != from_node->this_storage_neighbours.end(); 
-            ++it) {
-        if (it->first.key_value == to_key) {
-            from_node->this_storage_neighbours.erase(it);
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-// Удалить внешнее ребро (конкретное ребро в конкретное хранилище)
-bool remove_external_edge(const KeyType& from_key, 
-                            int target_storage_id, 
-                            const KeyType& to_key) {
-    StorageNode* from_node = get_node(from_key);
-    if (from_node == nullptr) {
-        return false;
-    }
-    
-    typename std::map<int, std::vector<typename StorageNode::Neighbour>>::iterator storage_it;
-    storage_it = from_node->other_storages_neighbours.find(target_storage_id);
-    if (storage_it == from_node->other_storages_neighbours.end()) {
-        return false;
-    }
-    
-    std::vector<typename StorageNode::Neighbour>& neighbors = storage_it->second;
-    typename std::vector<typename StorageNode::Neighbour>::iterator it;
-    for (it = neighbors.begin(); it != neighbors.end(); ++it) {
-        if (it->first.key_value == to_key) {
-            neighbors.erase(it);
-            
-            // Если после удаления вектор стал пустым, удаляем запись из map
-            if (neighbors.empty()) {
-                from_node->other_storages_neighbours.erase(storage_it);
-            }
-            
-            return true;
-        }
-    }
-    
-    return false;
-}
-    
-// Проверить, есть ли узел с рёбрами в указанное хранилище
-bool has_node_with_edges_to_storage(const KeyType& node_key, int target_storage_id) const {
-    const StorageNode* node = get_node(node_key);
-    if (node == nullptr) {
-        return false;
-    }
-    
-    typename std::map<int, std::vector<typename StorageNode::Neighbour>>::const_iterator it;
-    it = node->other_storages_neighbours.find(target_storage_id);
-    
-    if (it != node->other_storages_neighbours.end()) {
-        return !it->second.empty();
-    }
-    
-    return false;
-}
-
-// Получить вес всех рёбер в указанное хранилище
-int get_total_weight_to_storage(int target_storage_id) const {
-    int total_weight = 0;
-    
-    typename std::map<KeyType, StorageNode>::const_iterator it;
-    for (it = nodes.begin(); it != nodes.end(); ++it) {
-        const StorageNode& node = it->second;
-        
-        typename std::map<int, std::vector<typename StorageNode::Neighbour>>::const_iterator map_it;
-        map_it = node.other_storages_neighbours.find(target_storage_id);
-        
-        if (map_it != node.other_storages_neighbours.end()) {
-            const std::vector<typename StorageNode::Neighbour>& edges = map_it->second;
-            for (size_t i = 0; i < edges.size(); ++i) {
-                total_weight += edges[i].second.weight;
-            }
-        }
-    }
-    
-    return total_weight;
-}
-    */
-
 typename std::map<Key, StorageNode>::iterator begin() {
     return nodes.begin();
 }
@@ -491,6 +309,105 @@ friend std::ostream& operator<<(std::ostream& os, const Storage<KeyType>& storag
         for (; it != storage.end(); ++it) {
             os << "," << std::endl << "  " << it->second;
         }
+        os << std::endl << "}";
+    }
+    
+    // Вывод внешних рёбер
+    if (!storage.external_edges.empty()) {
+        os << ", external_edges: {";
+        
+        typename std::map<int, std::map<Key, std::map<Key, Edge<KeyType>>>>::const_iterator storage_it = 
+            storage.external_edges.begin();
+        
+        if (storage_it != storage.external_edges.end()) {
+            os << std::endl << "  to storage " << storage_it->first << ": {";
+            
+            const std::map<Key, std::map<Key, Edge<KeyType>>>& ext_nodes = storage_it->second;
+            typename std::map<Key, std::map<Key, Edge<KeyType>>>::const_iterator node_it = ext_nodes.begin();
+            
+            if (node_it != ext_nodes.end()) {
+                os << std::endl << "    external node " << node_it->first.key_value << ": [";
+                
+                const std::map<Key, Edge<KeyType>>& local_edges = node_it->second;
+                typename std::map<Key, Edge<KeyType>>::const_iterator edge_it = local_edges.begin();
+                
+                if (edge_it != local_edges.end()) {
+                    os << std::endl << "      local node " << edge_it->first.key_value 
+                       << " -> " << edge_it->second;
+                    ++edge_it;
+                }
+                for (; edge_it != local_edges.end(); ++edge_it) {
+                    os << "," << std::endl << "      local node " << edge_it->first.key_value 
+                       << " -> " << edge_it->second;
+                }
+                os << std::endl << "    ]";
+                ++node_it;
+            }
+            for (; node_it != ext_nodes.end(); ++node_it) {
+                os << "," << std::endl << "    external node " << node_it->first.key_value << ": [";
+                
+                const std::map<Key, Edge<KeyType>>& local_edges = node_it->second;
+                typename std::map<Key, Edge<KeyType>>::const_iterator edge_it = local_edges.begin();
+                
+                if (edge_it != local_edges.end()) {
+                    os << std::endl << "      local node " << edge_it->first.key_value 
+                       << " -> " << edge_it->second;
+                    ++edge_it;
+                }
+                for (; edge_it != local_edges.end(); ++edge_it) {
+                    os << "," << std::endl << "      local node " << edge_it->first.key_value 
+                       << " -> " << edge_it->second;
+                }
+                os << std::endl << "    ]";
+            }
+            os << std::endl << "  }";
+            ++storage_it;
+        }
+        
+        for (; storage_it != storage.external_edges.end(); ++storage_it) {
+            os << "," << std::endl << "  to storage " << storage_it->first << ": {";
+            
+            const std::map<Key, std::map<Key, Edge<KeyType>>>& ext_nodes = storage_it->second;
+            typename std::map<Key, std::map<Key, Edge<KeyType>>>::const_iterator node_it = ext_nodes.begin();
+            
+            if (node_it != ext_nodes.end()) {
+                os << std::endl << "    external node " << node_it->first.key_value << ": [";
+                
+                const std::map<Key, Edge<KeyType>>& local_edges = node_it->second;
+                typename std::map<Key, Edge<KeyType>>::const_iterator edge_it = local_edges.begin();
+                
+                if (edge_it != local_edges.end()) {
+                    os << std::endl << "      local node " << edge_it->first.key_value 
+                       << " -> " << edge_it->second;
+                    ++edge_it;
+                }
+                for (; edge_it != local_edges.end(); ++edge_it) {
+                    os << "," << std::endl << "      local node " << edge_it->first.key_value 
+                       << " -> " << edge_it->second;
+                }
+                os << std::endl << "    ]";
+                ++node_it;
+            }
+            for (; node_it != ext_nodes.end(); ++node_it) {
+                os << "," << std::endl << "    external node " << node_it->first.key_value << ": [";
+                
+                const std::map<Key, Edge<KeyType>>& local_edges = node_it->second;
+                typename std::map<Key, Edge<KeyType>>::const_iterator edge_it = local_edges.begin();
+                
+                if (edge_it != local_edges.end()) {
+                    os << std::endl << "      local node " << edge_it->first.key_value 
+                       << " -> " << edge_it->second;
+                    ++edge_it;
+                }
+                for (; edge_it != local_edges.end(); ++edge_it) {
+                    os << "," << std::endl << "      local node " << edge_it->first.key_value 
+                       << " -> " << edge_it->second;
+                }
+                os << std::endl << "    ]";
+            }
+            os << std::endl << "  }";
+        }
+        
         os << std::endl << "}";
     }
     
