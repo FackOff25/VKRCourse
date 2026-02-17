@@ -65,7 +65,7 @@ int main() {
     }
     std::cout << std::endl;
 
-    /*Node<int> removed = bus.request_node(2);
+    Node<int> removed = bus.request_node(2);
     bus.send_remove_node(2);
 
     std::cout << storage1 << std::endl;
@@ -74,7 +74,7 @@ int main() {
     bus.send_add_node(removed, 2);
 
     std::cout << storage1 << std::endl;
-    std::cout << storage2 << std::endl;*/
+    std::cout << storage2 << std::endl;
 
     ExternalStorageOptimizer<int> optimizer(&bus);
 
