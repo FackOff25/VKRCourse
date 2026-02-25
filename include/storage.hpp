@@ -3,6 +3,7 @@
 
 #include "graph.hpp"
 #include "interface_bus.hpp"
+#include "i_storage.hpp"
 #include <set>
 #include <optional>
 #include <vector>
@@ -11,26 +12,25 @@
 #include <map>
 
 template <typename KeyType>
-class Storage {
-private:
+class Storage : public IStorage<KeyType> {
+protected:
 typedef Node<KeyType> StorageNode;
 typedef NodeKey<KeyType> Key;
 int storage_id;
 std::map<Key, StorageNode> nodes;
 // external\_edges[storage edge go to][external node][local node] = edge
 std::map<int, std::map<Key, std::map<Key, Edge<KeyType>>>> external_edges;
+size_t internal_edges = 0;
 IBus<KeyType> *bus = nullptr;
 
 public:
-Storage(int id) 
-    :storage_id(id) {}
-Storage(int id, std::map<Key, StorageNode> _nodes) 
+Storage(int id, std::map<Key, StorageNode> _nodes = std::map<Key, StorageNode>()) 
     :storage_id(id), nodes(_nodes) {}
 
-int get_id() const { return storage_id; };
+int get_id() const override { return storage_id; };
 void connect_to_bus(IBus<KeyType>* _bus) { bus = _bus; };
 
-void get_add_announcement(Key key, int announcer_id, std::set<Edge<KeyType>> edges) {
+void get_add_announcement(Key key, int announcer_id, std::set<Edge<KeyType>> edges) override {
     if (announcer_id == storage_id) return;
 
     for (typename std::set<Edge<KeyType>>::iterator edge_it = edges.begin(); edge_it != edges.end(); ++edge_it) {
@@ -47,7 +47,7 @@ void get_add_announcement(Key key, int announcer_id, std::set<Edge<KeyType>> edg
     }
 };
 
-void get_remove_announcement(Key key, int announcer_id) {
+void get_remove_announcement(Key key, int announcer_id) override {
     if (announcer_id == storage_id) return;
     
     typename std::map<int, std::map<Key, std::map<Key, Edge<KeyType>>>>::iterator storage_it = 
@@ -84,9 +84,9 @@ void get_remove_announcement(Key key, int announcer_id) {
     }
 }
 
-std::optional<std::set<Edge<KeyType>>> add_node(const StorageNode& node){ 
+std::optional<std::set<Edge<KeyType>>> add_node(const StorageNode& node) override { 
     Key key = node.get_key();
-    std::cout << storage_id << " adding " << key.key_value  << std::endl;
+    std::cout << "Storage " << storage_id << ", adding " << key.key_value  << std::endl;
     typename std::map<Key, StorageNode>::iterator it = nodes.find(key);
     if (it != nodes.end()) {
         return std::nullopt;
@@ -97,18 +97,19 @@ std::optional<std::set<Edge<KeyType>>> add_node(const StorageNode& node){
     for (typename std::map<Key, Edge<KeyType>>::const_iterator edge_it = node.edges.begin(); edge_it != node.edges.end(); ++edge_it) {
         const Key& neighbor_key = edge_it->first;
         const Edge<KeyType>& edge = edge_it->second;
-        std::cout << storage_id << " looks for " << neighbor_key.key_value  << std::endl;
+        //std::cout << storage_id << " looks for " << neighbor_key.key_value  << std::endl;
         // Ищем соседа в текущем хранилище
         typename std::map<Key, StorageNode>::iterator it2 = nodes.find(neighbor_key);
         if (it2 != nodes.end()) {
-            std::cout << storage_id << " node " << neighbor_key.key_value << " is inside, no asking"  << std::endl;
+            //std::cout << storage_id << " node " << neighbor_key.key_value << " is inside, no asking"  << std::endl;
             // Сосед найден в этом же хранилище - добавляем обратное ребро
             it2->second.add_edge(edge);
+            ++internal_edges;
         } else {
-            std::cout << storage_id << " node " << neighbor_key.key_value << " is outside, asking"  << std::endl;
+            //std::cout << storage_id << " node " << neighbor_key.key_value << " is outside, asking"  << std::endl;
             // Сосед не найден - спрашиваем у шины, где он находится
             int neighbours_storage_id = bus->ask_who_has(storage_id, neighbor_key);
-            std::cout << storage_id << " asked for " << neighbor_key.key_value << " answer: " << neighbours_storage_id << std::endl;
+            //std::cout << storage_id << " asked for " << neighbor_key.key_value << " answer: " << neighbours_storage_id << std::endl;
             if (neighbours_storage_id != -1) {
                 // Сохраняем внешнее ребро
                 external_edges[neighbours_storage_id][neighbor_key][key] = edge;
@@ -121,20 +122,19 @@ std::optional<std::set<Edge<KeyType>>> add_node(const StorageNode& node){
     return external_edges_to_announce;
 };
 
-bool add_node_and_announce(const StorageNode& node) {
+std::optional<std::set<Edge<KeyType>>> add_node_and_announce(const StorageNode& node) override {
     if (bus == nullptr) {
-        return false;
+        return std::optional<std::set<Edge<KeyType>>>();
     };
     std::optional<std::set<Edge<KeyType>>> external_edges = add_node(node);
-    if (!external_edges.has_value()) {
-        return false;
+    if (external_edges.has_value()) {
+        bus->announce_add(node.get_key(), storage_id, external_edges.value());
     }
-    bus->announce_add(node.get_key(), storage_id, external_edges.value());
-    return true;
+    return external_edges;
 };
 
 
-bool remove_node(const Key& key) {
+bool remove_node(const Key& key) override {
     if (!has_node(key)) {
         return false;
     };
@@ -146,6 +146,7 @@ bool remove_node(const Key& key) {
         typename std::map<Key, StorageNode>::iterator it = nodes.find(other_key);
         if (it != nodes.end()) {
             it->second.remove_edge_to(key);
+            --internal_edges;
         }
     }
 
@@ -187,7 +188,7 @@ bool remove_node(const Key& key) {
     return true;
 };
 
-bool remove_node_and_announce(const Key& key) {
+bool remove_node_and_announce(const Key& key) override {
     if (remove_node(key)) {
         bus->announce_remove(key, storage_id);
         return true;
@@ -195,7 +196,7 @@ bool remove_node_and_announce(const Key& key) {
     return false;
 };
    
-StorageNode* get_node(const Key& key) {
+StorageNode* get_node(const Key& key) override {
     typename std::map<Key, StorageNode>::iterator it = nodes.find(key);
     if (it != nodes.end()) {
         return &(it->second);
@@ -204,19 +205,22 @@ StorageNode* get_node(const Key& key) {
 };
 
 
-bool has_node(const Key& key) const {
+bool has_node(const Key& key) const override {
     return nodes.find(key) != nodes.end();
 }
 
-const std::map<Key, StorageNode>& get_all_nodes() const {
+const std::map<Key, StorageNode>& get_all_nodes() const override {
     return nodes;
 }
 
-size_t size() const {
+size_t size() const override {
     return nodes.size();
 }
 
-void clear() {
+size_t internal_edges_size() const override {
+    return internal_edges;
+}
+void clear() override {
     nodes.clear();
 }
 
@@ -225,7 +229,7 @@ void clear() {
 //
 
 // Получить набор узлов, имеющих соседей в указанном хранилище (копии)
-std::set<StorageNode> get_nodes_with_neighbors_in_storage(int target_storage_id) const {
+std::set<StorageNode> get_nodes_with_neighbors_in_storage(int target_storage_id) const override {
     std::set<StorageNode> result;
 
     typename std::map<int, std::map<Key,  std::map<Key, Edge<KeyType>>>>::const_iterator storage_it = external_edges.find(target_storage_id);
@@ -248,7 +252,7 @@ std::set<StorageNode> get_nodes_with_neighbors_in_storage(int target_storage_id)
     return result;
 }
 
-std::set<Edge<KeyType>> get_all_edges_to_storage(int target_storage_id) const {
+std::set<Edge<KeyType>> get_all_edges_to_storage(int target_storage_id) const override {
     std::set<Edge<KeyType>> result;
     typename std::map<int, std::map<Key, std::map<Key, Edge<KeyType>>>>::const_iterator storage_it = external_edges.find(target_storage_id);
     if (storage_it == external_edges.end()) {
@@ -265,31 +269,36 @@ std::set<Edge<KeyType>> get_all_edges_to_storage(int target_storage_id) const {
     return result;
 }
 
-typename std::map<Key, StorageNode>::iterator begin() {
+float get_streaming_euristics_change(const Node<KeyType>& node, int total_edges) {
+    // simple storage isn't supposed to do it
+    return 0;
+}
+
+typename std::map<Key, StorageNode>::iterator begin() override {
     return nodes.begin();
 }
 
-typename std::map<Key, StorageNode>::iterator end() {
+typename std::map<Key, StorageNode>::iterator end() override {
     return nodes.end();
 }
 
-typename std::map<Key, StorageNode>::const_iterator begin() const {
+typename std::map<Key, StorageNode>::const_iterator begin() const override {
     return nodes.begin();
 }
 
-typename std::map<Key, StorageNode>::const_iterator end() const {
+typename std::map<Key, StorageNode>::const_iterator end() const override {
     return nodes.end();
 }
 
-typename std::map<Key, StorageNode>::const_iterator cbegin() const {
+typename std::map<Key, StorageNode>::const_iterator cbegin() const override {
     return nodes.cbegin();
 }
 
-typename std::map<Key, StorageNode>::const_iterator cend() const {
+typename std::map<Key, StorageNode>::const_iterator cend() const override {
     return nodes.cend();
 }
 
-bool empty() const {
+bool empty() const override {
     return nodes.empty();
 }
 
