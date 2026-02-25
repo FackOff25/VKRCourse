@@ -3,8 +3,6 @@
 
 Формальная постановка задачи, рассматриваемой в работе, может быть сформулирована следующим образом. Дан граф $G = (V, E)$, где $|V| = n$ - количество вершин, $|E| = m$ - количество рёбер. Распределение графа представляет собой разбиение $P = \{ S_1, S_2, \dots, S_k \}$, где $S_i$ - набор вершин (шард) такой, что $S_i \cap S_j = \emptyset$ для $i \neq j$ и $\bigcup_{i=1}^k S_i = V$.
 
-
-
 Требуется найти такое распределение $P^* = \{ S_1^*, S_2^*, \dots, S_k^* \}$, которое:
 \begin{enumerate}
     \item Минимизирует общую мощность разрезов:
@@ -63,7 +61,7 @@ g_v = \sum_{\substack{(v,u) \in E \\ P[v] \neq P[u]}} w(v,u) - \sum_{\substack{(
     \item \texttt{main.cpp} -- демонстрационный файл с тестовым сценарием.
 \end{itemize}
 
-Ниже представлен релевантный для решения задачи практики код. Полный код представлен в приложении А.
+Ниже представлен релевантный для решения задачи практики код.
 
 \subsubsection{Классы для представления графовых структур (graph.hpp)}
 
@@ -195,7 +193,7 @@ public:
 };
 \end{lstlisting}
 
-Класс имеет несколько конструкторов для удобного создания вершин с различными конфигурациями связей (см. приложение А). Все рёбра хранятся в вершине, от ссылок было решено отказаться, так как в конечной реализации хранилища должны находиться на разных машинах, а в вершины периодически перемещаться между ними.
+Класс имеет несколько конструкторов для удобного создания вершин с различными конфигурациями связей. Все рёбра хранятся в вершине, от ссылок было решено отказаться, так как в конечной реализации хранилища должны находиться на разных машинах, а в вершины периодически перемещаться между ними.
 
 \textbf{Класс интерфейса шины (interface\_bus.hpp)}
 
@@ -391,11 +389,11 @@ std::set<Edge<KeyType>> get_all_edges_to_storage(int target_storage_id) const {
 }
 \end{lstlisting}
 
-\subsection{Класс оптимизатора (optimizer.hpp)}
+\subsubsection{Класс оптимизатора (optimizer.hpp)}
 
 Класс \texttt{ExternalStorageOptimizer} является центральным компонентом реализации алгоритма Кернигана-Лина и отвечает за расчёт метрики улучшения $g_v$.
 
-\subsubsection{Структура класса оптимизатора}
+\textbf{Структура класса оптимизатора}
 
 \begin{lstlisting}[language=C++, caption=Класс StorageOptimizer, label=lst:optimizer1]
 template <typename KeyType>
@@ -408,11 +406,12 @@ ExternalStorageOptimizer(IBus<KeyType>* _bus)
 }
 \end{lstlisting}
 
-\subsubsection{Основной метод расчёта метрик}
+\textbf{Основной метод расчёта метрик}
 
 Метод \texttt{calculate\_gvs()} демонстрирует практическую реализацию итерации Boundary KL (алгоритм работы только с граничными вершинами). Он получает граничные вершины из обоих хранилищ и вычисляет для каждой из них метрику улучшения $g_v$, а метод \texttt{calculate\_gv} занимается непосредственно рассчётом метрики.
 
 \begin{lstlisting}[language=C++, caption=Методы расчёта g\_v, label=lst:optimizer2]
+private: 
 float calculate_gv(const Node<KeyType>& node, std::set<Edge<KeyType>> boundary_edges) const {
     NodeKey<KeyType> this_key = node.get_key();
     float internal_edges_weight = 0;
@@ -440,6 +439,7 @@ float calculate_gv(const Node<KeyType>& node, std::set<Edge<KeyType>> boundary_e
     return internal_edges_weight - external_edges_weight;
 }
 
+public:
 std::map<int, std::map<Node<KeyType>, float>> calculate_gvs(int storage1, int storage2) const {
     std::map<int, std::map<Node<KeyType>, float>> result;
     // Получаем граничные вершины для обоих хранилищ
@@ -465,7 +465,7 @@ std::map<int, std::map<Node<KeyType>, float>> calculate_gvs(int storage1, int st
 };
 \end{lstlisting}
 
-\subsubsection{Метод оптимизации}
+\textbf{Метод оптимизации}
 
 Метод \texttt{optimize()} демонстрирует практическую реализацию оптимизации KL. Он итеративно пользуется алгоритмом Кернигана-Лина, получает вершины с негативным $g_v$, после чего перемещает их в другое хранилище.
 
