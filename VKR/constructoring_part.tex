@@ -1,0 +1,691 @@
+\section{Конструкторская часть}
+
+\subsection{Постановка задачи распределения вершин графа}
+
+В контексте распределенных графовых баз данных задача распределения вершин (графового партиционирования) формулируется следующим образом. Пусть дан неориентированный граф \(G = (V, E)\), где \(V\) — множество вершин, \(|V| = n\), а \(E\) — множество рёбер, \(|E| = m\). Требуется найти такое разбиение (распределение) \(P = \{S_1, S_2, ..., S_k\}\) множества вершин \(V\) на \(k\) непересекающихся подмножеств (шардов) \(S_i\), что:
+\begin{itemize}
+    \item \(\bigcup_{i=1}^{k} S_i = V\).
+    \item \(S_i \cap S_j = \emptyset\) для всех \(i \neq j\).
+\end{itemize}
+
+Качество распределения оценивается по двум основным критериям, которые необходимо оптимизировать:
+\begin{enumerate}
+    \item \textbf{Минимизация разрезов (Edge Cut).} Мощность разреза \(\partial e(P)\) определяется как количество рёбер, концы которых оказались в разных шардах. Формально:
+    \[
+    |\partial e(P)| = \sum_{i=1}^{k} |e(S_i, V \setminus S_i)|
+    \]
+    Минимизация этого параметра напрямую влияет на снижение сетевого трафика при выполнении распределенных запросов.
+    \item \textbf{Балансировка нагрузки (Load Balancing).} Неравномерное распределение вершин приводит к перегрузке одних узлов и простою других. Для количественной оценки используется показатель нормализованной максимальной нагрузки \(\rho\), который необходимо минимизировать:
+    \[
+    \rho = \frac{\max_{i=1}^{k} (|S_i|)}{n/k}
+    \]
+    Идеально сбалансированное распределение соответствует \(\rho = 1\).
+\end{enumerate}
+Таким образом, целевая задача заключается в поиске такого распределения \(P^*\), которое минимизирует мощность разрезов \(|\partial e(P)|\) при максимально допустимом значении дисбаланса \(\rho \leq \tau\), где \(\tau\) — заданный порог.
+
+\subsection{Структурная оптимизация}
+
+В рамках данной курсовой работы была реализована вычислительная модель для расчёта и оптимизации метрики улучшения распределения $g_v$ для граничных вершин графа согласно алгоритму Кернигана-Лина. Реализация включает в себя четыре основных компонента:
+\begin{enumerate}
+    \item Классы для представления графовых структур (вершины, рёбра, ключи).
+    \item Классы имитации шины для общения компонентов
+    \item Класс хранилища (Storage) для управления вершинами и их связями.
+    \item Класс оптимизатора (StorageOptimizer) для расчёта метрики $g_v$.
+\end{enumerate}
+
+Основной задачей практической части являлось создание инфраструктуры для вычисления функции улучшения распределения, определенной в алгоритме Кернигана-Лина:
+\[
+g_v = \sum_{\substack{(v,u) \in E \\ P[v] \neq P[u]}} w(v,u) - \sum_{\substack{(v,u) \in E \\ P[v] = P[u]}} w(v,u)
+\]
+
+\subsubsection{Структура проекта и основные зависимости}
+
+Языком разработки был выбран С++ в силу его низкоуровневости и скорости, а также с намереньем в дальнейшим внедрить эти наработки в графовую БД на С++ научного руководителя.
+
+Проект организован в виде набора заголовочных файлов (header files), что соответствует современным подходам разработки на C++. Основные файлы проекта:
+
+\begin{itemize}
+    \item \texttt{graph.hpp} -- содержит базовые классы для представления графовых структур.
+    \item \texttt{interface\_bus.hpp} -- содержит интерфейс, описывающий основные сообщения в шине.
+    \item \texttt{bus.hpp} -- содержит простую реализацию имитации шины.
+    \item \texttt{storage.hpp} -- реализует класс хранилища для управления вершинами.
+    \item \texttt{optimizer.hpp} -- содержит реализацию оптимизатора с вычислением метрики $g_v$.
+    \item \texttt{main.cpp} -- демонстрационный файл с тестовым сценарием.
+\end{itemize}
+
+Ниже представлен релевантный для решения задачи практики код.
+
+\subsubsection{Классы для представления графовых структур (graph.hpp)}
+
+\textbf{Класс NodeKey}
+
+Класс \texttt{NodeKey} представляет собой обёртку для ключа вершины графа. Он обеспечивает типобезопасность и возможность использования различных типов данных в качестве ключей (целые числа, строки и т.д.).
+
+\begin{lstlisting}[language=C++, caption=Класс NodeKey в graph.hpp, label=lst:nodekey]
+template <typename KeyType> 
+class NodeKey {
+public:
+KeyType key_value;
+
+NodeKey(): key_value(KeyType()) {};
+NodeKey(const KeyType& key): key_value(key) {};
+
+// Оператор присваивания
+NodeKey<KeyType>& operator=(const NodeKey<KeyType>& other) {
+    if (this != &other) {
+        key_value = other.key_value;
+    }
+    return *this;
+};
+
+// Дружественные операторы сравнения
+friend bool operator<(const NodeKey<KeyType>& lhs, const NodeKey<KeyType>& rhs) {
+    return lhs.key_value < rhs.key_value;
+}
+
+friend bool operator>(const NodeKey<KeyType>& lhs, const NodeKey<KeyType>& rhs) {
+    return rhs < lhs;
+}
+
+friend bool operator==(const NodeKey<KeyType>& lhs, const NodeKey<KeyType>& rhs) {
+    return lhs.key_value == rhs.key_value;
+}
+
+friend bool operator!=(const NodeKey<KeyType>& lhs, const NodeKey<KeyType>& rhs) {
+    return !(lhs == rhs);
+}
+};
+\end{lstlisting}
+
+Класс \texttt{NodeKey} является шаблонным, что позволяет использовать различные типы данных в качестве ключей вершин. Это важно для обеспечения гибкости при работе с различными типами графовых данных. Известно, что в конечной реализации используются строковые ключи, но была добавлена гибкость для потенциального использования пользовательских гибридных ключей.
+
+\textbf{Класс Edge}
+
+Класс \texttt{Edge} представляет ребро графа с весом и дополнительными параметрами.
+
+\begin{lstlisting}[language=C++, caption=Класс Edge в graph.hpp, label=lst:edge]
+template <typename KeyType>
+class Edge {
+private:
+    float weight;
+    bool directional;
+    std::map<std::string, Parameter> parameters;
+    NodeKey<KeyType> from;
+    NodeKey<KeyType> to;
+public:
+    float get_weight() const {
+        return weight;
+    }
+    bool is_directional() const {
+        return directional;
+    }
+    const NodeKey<KeyType>& get_from() const {
+        return from;
+    }
+    const NodeKey<KeyType>& get_to() const {
+        return to;
+    }
+    
+    NodeKey<KeyType> get_other(const NodeKey<KeyType>& node) const {
+        if (node == to) {
+            return from;
+        } else if (node == from) {
+            return to;
+        }
+
+        return node;
+    }
+
+    NodeKey<KeyType> get_other(NodeKey<KeyType>* node) const {
+        if (*node == to) {
+            return from;
+        } else if (*node == from) {
+            return to;
+        } else {
+            return *node;
+        }
+    }
+};
+\end{lstlisting}
+
+\textbf{Класс Node}
+
+Класс \texttt{Node} представляет вершину графа и содержит всю информацию о её связях с другими вершинами.
+
+\begin{lstlisting}[language=C++, caption=Класс Node в graph.hpp (часть 1), label=lst:node1]
+template <typename KeyType>
+class Node {
+private:
+    NodeKey<KeyType> key;
+public:
+    std::map<std::string, Parameter> parameters;
+    std::map<NodeKey<KeyType>, Edge<KeyType>> edges;
+    }
+        NodeKey<KeyType> get_key() const {
+        return key;
+    }
+
+    void add_edge(Edge<KeyType> new_edge) {
+        NodeKey<KeyType> current_key = this->get_key();
+        edges[new_edge.get_other(current_key)] = new_edge;
+    }
+
+    void add_edges(std::map<NodeKey<KeyType>, Edge<KeyType>> new_edges) {
+        edges.merge(new_edges);
+    }
+
+    bool remove_edge_to(NodeKey<KeyType> neighbour_key) {
+        return edges.erase(neighbour_key);
+    }
+
+    bool remove_edge(Edge<KeyType> removing_edge) {
+        NodeKey<KeyType> current_key = this->get_key();
+        return edges.erase(removing_edge.get_other(current_key));
+    }
+};
+\end{lstlisting}
+
+Класс имеет несколько конструкторов для удобного создания вершин с различными конфигурациями связей. Все рёбра хранятся в вершине, от ссылок было решено отказаться, так как в конечной реализации хранилища должны находиться на разных машинах, а в вершины периодически перемещаться между ними.
+
+\textbf{Класс интерфейса шины (interface\_bus.hpp)}
+
+Крайне важный интерфейс, через который происходит взаимодействие всей системы. Описывает методы добавления, удаления и запроса вершин, а также объявлений о добавлении и удалении для возможности другим хранилищам знать где находится другая вершина.
+
+И наконец ключевые для алгоритма Кернигана-Лина методы получения граничных вершин и рёбер ask\_neigbours\_to\_storage и ask\_edges\_to\_storage.
+
+\begin{lstlisting}[language=C++, caption=Базовая структура класса IBus, label=lst:ibus1]
+template <typename KeyType> 
+class IBus {
+public:
+    virtual Node<KeyType> request_node(const NodeKey<KeyType>& node) = 0;
+    virtual int send_add_node(const Node<KeyType>& node) = 0;
+    virtual bool send_add_node(const Node<KeyType>& node, int storage_id) = 0;
+    virtual bool send_remove_node(const NodeKey<KeyType>& node) = 0;
+    virtual bool send_remove_node(const NodeKey<KeyType>& node, int storage_id) = 0;
+    virtual int ask_who_has(int asker_id, NodeKey<KeyType> key) = 0;
+    virtual void announce_add(NodeKey<KeyType> key, int storage_id, std::set<Edge<KeyType>> edges) = 0;
+    virtual void announce_remove(NodeKey<KeyType> key, int storage_id) = 0;
+    // запрашивает у source вершины, соседствующие с target
+    virtual std::set<Node<KeyType>> ask_neigbours_to_storage(int source, int target) = 0;
+    // запрашивает у source рёбра, идущие в target
+    virtual std::set<Edge<KeyType>> ask_edges_to_storage(int source, int target) = 0;
+};
+\end{lstlisting}
+
+\textbf{Класс шины SimpleBus (bus.hpp)}
+
+Простая синхронная однопоточная реализация методов IBus. Релевантный код слишком длинный для вставки в основную часть, поэтому представлен в приложении А.
+
+\textbf{Класс хранилища (storage.hpp)}
+
+Класс \texttt{Storage} представляет собой хранилище вершин графа и реализует логику управления внутренними и внешними связями.
+
+\subsubsection{Структура класса Storage}
+
+\begin{lstlisting}[language=C++, caption=Базовая структура класса Storage, label=lst:storage1]
+template <typename KeyType>
+class Storage {
+private:
+typedef Node<KeyType> StorageNode;
+typedef NodeKey<KeyType> Key;
+int storage_id;
+std::map<Key, StorageNode> nodes;
+// external\_edges[storage edge go to][external node][local node] = edge
+std::map<int, std::map<Key, std::map<Key, Edge<KeyType>>>> external_edges;
+IBus<KeyType> *bus = nullptr;
+
+public:
+Storage(int id) 
+    :storage_id(id) {}
+Storage(int id, std::map<Key, StorageNode> _nodes) 
+    :storage_id(id), nodes(_nodes) {}
+
+int get_id() const { return storage_id; };
+void connect_to_bus(IBus<KeyType>* _bus) { bus = _bus; };
+\end{lstlisting}
+
+Хранилище идентифицируется уникальным \texttt{storage\_id} и содержит вершины в виде хэш-таблицы для обеспечения быстрого доступа по ключу.
+
+\textbf{Добавление вершин с автоматическим созданием связей}
+
+\begin{lstlisting}[language=C++, caption=Методы добавления вершин класса Storage, label=lst:storage2]
+std::optional<std::set<Edge<KeyType>>> add_node(const StorageNode& node){ 
+    Key key = node.get_key();
+    std::cout << storage_id << " adding " << key.key_value  << std::endl;
+    typename std::map<Key, StorageNode>::iterator it = nodes.find(key);
+    if (it != nodes.end()) {
+        return std::nullopt;
+    }
+    nodes[key] = node;
+
+    std::set<Edge<KeyType>> external_edges_to_announce;
+    for (typename std::map<Key, Edge<KeyType>>::const_iterator edge_it = node.edges.begin(); edge_it != node.edges.end(); ++edge_it) {
+        const Key& neighbor_key = edge_it->first;
+        const Edge<KeyType>& edge = edge_it->second;
+        std::cout << storage_id << " looks for " << neighbor_key.key_value  << std::endl;
+        // Ищем соседа в текущем хранилище
+        typename std::map<Key, StorageNode>::iterator it2 = nodes.find(neighbor_key);
+        if (it2 != nodes.end()) {
+            std::cout << storage_id << " node " << neighbor_key.key_value << " is inside, no asking"  << std::endl;
+            // Сосед найден в этом же хранилище - добавляем обратное ребро
+            it2->second.add_edge(edge);
+        } else {
+            std::cout << storage_id << " node " << neighbor_key.key_value << " is outside, asking"  << std::endl;
+            // Сосед не найден - спрашиваем у шины, где он находится
+            int neighbours_storage_id = bus->ask_who_has(storage_id, neighbor_key);
+            std::cout << storage_id << " asked for " << neighbor_key.key_value << " answer: " << neighbours_storage_id << std::endl;
+            if (neighbours_storage_id != -1) {
+                // Сохраняем внешнее ребро
+                external_edges[neighbours_storage_id][neighbor_key][key] = edge;
+                external_edges_to_announce.insert(edge);
+            }
+            // Если сосед нигде не найден - игнорируем (возможно, будет добавлен позже)
+        }
+    }
+    
+    return external_edges_to_announce;
+};
+
+bool add_node_and_announce(const StorageNode& node) {
+    if (bus == nullptr) {
+        return false;
+    };
+    std::optional<std::set<Edge<KeyType>>> external_edges = add_node(node);
+    if (!external_edges.has_value()) {
+        return false;
+    }
+    bus->announce_add(node.get_key(), storage_id, external_edges.value());
+    return true;
+};
+\end{lstlisting}
+
+Метод \texttt{add\_node} не только добавляет вершину в хранилище, но и автоматически создает связи с её соседями, что обеспечивает целостность графовой структуры. Это требуется для будущей реализации потокового распределения. Также метод add\_node\_and\_announce позволяет при добавлении объявить о добавлении новой вершины.
+
+\textbf{Удаление вершин с автоматическим удалением связей}
+
+\begin{lstlisting}[language=C++, caption=Метод удаления вершин класса Storage, label=lst:storage3]
+bool remove_node(const Key& key) {
+    if (!has_node(key)) {
+        return false;
+    };
+    StorageNode node = nodes.find(key)->second;
+    nodes.erase(key);
+
+    for (typename std::map<NodeKey<KeyType>, Edge<KeyType>>::iterator edge_it = node.edges.begin(); edge_it != node.edges.end(); ++edge_it) {
+        Key other_key = edge_it->second.get_other(key);
+        typename std::map<Key, StorageNode>::iterator it = nodes.find(other_key);
+        if (it != nodes.end()) {
+            it->second.remove_edge_to(key);
+        }
+    }
+
+    return true;
+};
+
+bool remove_node_and_announce(const Key& key) {
+    if (remove_node(key)) {
+        bus->announce_remove(key, storage_id);
+        return true;
+    }
+    return false;
+};
+\end{lstlisting}
+
+Методы \texttt{remove\_node} и remove\_node\_and\_announce аналогично их add версиям автоматически следят за целостностью графа как локально, так и внешне. Это значительно снижает вычислительную сложность, так как исключает из рассмотрения вершины, не имеющие внешних связей.
+
+\textbf{Методы для работы с граничными вершинами}
+
+Для реализации граничного алгоритма Кернигана-Лина требуется уметь получать вершины, граничащие с другим хранилищем, чем занимается метод get\_nodes\_with\_neighbors\_in\_storage используя мапу внешних соседей.
+
+\begin{lstlisting}[language=C++, caption=Метод для получения граничных вершин, label=lst:storage4]
+    std::set<StorageNode> result;
+
+    typename std::map<int, std::map<Key,  std::map<Key, Edge<KeyType>>>>::const_iterator storage_it = external_edges.find(target_storage_id);
+    if (storage_it == external_edges.end()) {
+        return result;
+    }
+
+    const std::map<Key, std::map<Key, Edge<KeyType>>>& node_edges = storage_it->second;
+    for (typename std::map<Key, std::map<Key, Edge<KeyType>>>::const_iterator node_edges_it = node_edges.begin(); node_edges_it != node_edges.end(); ++node_edges_it) {
+        const std::map<Key, Edge<KeyType>>& local_node_edges = node_edges_it->second;
+        for (typename std::map<Key, Edge<KeyType>>::const_iterator local_node_edges_it = local_node_edges.begin(); local_node_edges_it != local_node_edges.end(); ++local_node_edges_it) {
+            Key local_key = local_node_edges_it->first;
+            typename std::map<Key, StorageNode>::const_iterator node_it = nodes.find(local_key);
+            if (node_it != nodes.end()) {
+                result.insert(node_it->second);
+            }
+        }
+    }
+    
+    return result;
+\end{lstlisting}
+
+В листниге \ref{lst:storage5} представлен метод получения рёбер между хранилищами, что позволеяет несколько упростить дальнейшие вычисления.
+
+\begin{lstlisting}[language=C++, caption=Метод получения рёбер в другое хранилище, label=lst:storage5]
+std::set<Edge<KeyType>> get_all_edges_to_storage(int target_storage_id) const {
+    std::set<Edge<KeyType>> result;
+    typename std::map<int, std::map<Key, std::map<Key, Edge<KeyType>>>>::const_iterator storage_it = external_edges.find(target_storage_id);
+    if (storage_it == external_edges.end()) {
+        return std::set<Edge<KeyType>>();
+    } else {
+        const std::map<Key, std::map<Key, Edge<KeyType>>>& external_nodes_map = storage_it->second;
+        for (typename std::map<Key, std::map<Key, Edge<KeyType>>>::const_iterator node_edges_it = external_nodes_map.begin(); node_edges_it != external_nodes_map.end(); ++node_edges_it) {
+            const std::map<Key, Edge<KeyType>>& node_edge_map = node_edges_it->second;
+            for (typename std::map<Key, Edge<KeyType>>::const_iterator edges_it = node_edge_map.begin(); edges_it != node_edge_map.end(); ++edges_it) {
+                result.insert(edges_it->second);
+            }
+        }
+    }
+    return result;
+}
+\end{lstlisting}
+
+\subsubsection{Класс оптимизатора (optimizer.hpp)}
+
+Класс \texttt{ExternalStorageOptimizer} является центральным компонентом реализации алгоритма Кернигана-Лина и отвечает за расчёт метрики улучшения $g_v$.
+
+\textbf{Структура класса оптимизатора}
+
+\begin{lstlisting}[language=C++, caption=Класс StorageOptimizer, label=lst:optimizer1]
+template <typename KeyType>
+class ExternalStorageOptimizer {
+private:
+IBus<KeyType>* bus;
+public:
+ExternalStorageOptimizer(IBus<KeyType>* _bus)
+    : bus(_bus) {}
+}
+\end{lstlisting}
+
+\textbf{Основной метод расчёта метрик}
+
+Метод \texttt{calculate\_gvs()} демонстрирует практическую реализацию итерации Boundary KL (алгоритм работы только с граничными вершинами). Он получает граничные вершины из обоих хранилищ и вычисляет для каждой из них метрику улучшения $g_v$, а метод \texttt{calculate\_gv} занимается непосредственно рассчётом метрики.
+
+\begin{lstlisting}[language=C++, caption=Методы расчёта g\_v, label=lst:optimizer2]
+private: 
+float calculate_gv(const Node<KeyType>& node, std::set<Edge<KeyType>> boundary_edges) const {
+    NodeKey<KeyType> this_key = node.get_key();
+    float internal_edges_weight = 0;
+    float external_edges_weight = 0;
+
+    std::map<NodeKey<KeyType>, Edge<KeyType>> boundary_edges_map;
+    for (typename std::set<Edge<KeyType>>::const_iterator edge_it = boundary_edges.begin(); 
+         edge_it != boundary_edges.end(); ++edge_it) {
+        NodeKey<KeyType> other = edge_it->get_other(this_key);
+        if (!(other == this_key)) {  
+            boundary_edges_map[other] = *edge_it;
+        }
+    }
+
+    for (typename std::map<NodeKey<KeyType>, Edge<KeyType>>::const_iterator edge_it = node.edges.begin(); edge_it != node.edges.end(); ++edge_it) {
+        const NodeKey<KeyType>& neighbor_key = edge_it->first;
+        const Edge<KeyType>& edge = edge_it->second;
+        if (boundary_edges_map.find(neighbor_key) != boundary_edges_map.end()) {
+            external_edges_weight += edge.get_weight();
+        } else {
+            internal_edges_weight += edge.get_weight();
+        }
+    }
+    
+    return internal_edges_weight - external_edges_weight;
+}
+
+public:
+std::map<int, std::map<Node<KeyType>, float>> calculate_gvs(int storage1, int storage2) const {
+    std::map<int, std::map<Node<KeyType>, float>> result;
+    // Получаем граничные вершины для обоих хранилищ
+    std::set<Node<KeyType>> boundary_nodes1 = bus->ask_neigbours_to_storage(storage1, storage2);
+    std::set<Node<KeyType>> boundary_nodes2 = bus->ask_neigbours_to_storage(storage2, storage1);
+
+    std::set<Edge<KeyType>> boundary_edges1 = bus->ask_edges_to_storage(storage1, storage2);
+    std::set<Edge<KeyType>> boundary_edges2 = bus->ask_edges_to_storage(storage2, storage1);
+
+    result[storage1] = std::map<Node<KeyType>, float>();
+    typename std::set<Node<KeyType>>::const_iterator it;
+    for (it = boundary_nodes1.begin(); it != boundary_nodes1.end(); ++it) {
+        const Node<KeyType>& node = *it;
+        result[storage1][node.get_key()] = calculate_gv(node, boundary_edges1);
+    }
+
+    result[storage2] = std::map<Node<KeyType>, float>();
+    for (it = boundary_nodes2.begin(); it != boundary_nodes2.end(); ++it) {
+        const Node<KeyType>& node = *it;
+        result[storage2][node.get_key()] = calculate_gv(node, boundary_edges2);
+    }
+    return result;
+};
+\end{lstlisting}
+
+\textbf{Метод оптимизации}
+
+Метод \texttt{optimize()} демонстрирует практическую реализацию оптимизации KL. Он итеративно пользуется алгоритмом Кернигана-Лина, получает вершины с негативным $g_v$, после чего перемещает их в другое хранилище.
+
+\begin{lstlisting}[language=C++, caption=Метод оптимизации, label=lst:optimizer4]
+void optimize(int storage1, int storage2, int iterations_limit = 5) {
+    if (iterations_limit == 0) return;
+    
+    int iteration = 0;
+    std::map<int, std::set<Node<KeyType>>> negative_gvs = get_negative_gvs(calculate_gvs(storage1, storage2));
+    do {
+        typename std::map<int, std::set<Node<KeyType>>>::iterator map_it;
+        for (map_it = negative_gvs.begin(); map_it != negative_gvs.end(); ++map_it) {
+            int this_storage = map_it->first;
+            int other_storage = this_storage == storage1 ? storage2 : storage1;
+            std::set<Node<KeyType>>& nodes = map_it->second;
+            typename std::set<Node<KeyType>>::const_iterator set_it;
+            for (set_it = nodes.begin(); set_it != nodes.end(); ++set_it) {
+                const Node<KeyType>& node = *set_it;
+                Node<int> removed = bus->request_node(node.get_key());
+                bus->send_remove_node(removed.get_key(), this_storage);
+                bus->send_add_node(removed, other_storage);
+            }
+        }
+        ++iteration;
+        negative_gvs = get_negative_gvs(calculate_gvs(storage1, storage2));
+    } while (iteration < iterations_limit && !negative_gvs.empty());
+}
+\end{lstlisting}
+
+\subsection{Streaming Graph Partitioning}
+
+Традиционные методы оптимизации распределения, такие как METIS, требуют полного знания структуры графа для выполнения разбиения и работают в пакетном (offline) режиме. Однако во многих современных приложениях графы динамически изменяются: новые вершины и рёбра поступают непрерывно. Для таких сценариев разработаны методы потокового распределения (online partitioning).
+
+В модели потокового распределения \cite{SGP} вершины графа поступают на вход системы последовательно (в виде потока). Алгоритм должен принять решение о размещении каждой новой вершины \(v\) в одном из \(k\) шардов немедленно, основываясь только на информации об уже распределенных вершинах и, возможно, на знании соседей \(N(v)\) новой вершины. Это накладывает жесткие ограничения на вычислительную сложность, но позволяет обрабатывать графы произвольного размера.
+
+В работе \cite{SGP} рассматривается семейство эвристик для потокового партиционирования, которые используют весовую функцию для учета текущей загруженности шардов и структуры связей. Цель эвристик — максимизировать количество соседей новой вершины в том шарде, куда она помещается. Общая формула для выбора шарда \(i\) выглядит следующим образом:
+\[
+\text{ind} = \arg\max_{i \in \{1..k\}} \{ |P^t(i) \cap N(v)| \cdot w(t, i) \}
+\]
+где \(P^t(i)\) — множество вершин в шарде \(i\) в момент времени \(t\), а \(w(t, i)\) — весовая функция, отвечающая за балансировку (например, линейная \(w(t, i) = 1 - |P^t(i)| / C\) или экспоненциальная, где \(C\) — максимальная вместимость шарда). Одной из наиболее эффективных эвристик, согласно экспериментальным данным, является линейная детерминированная жадная эвристика (LDG).
+
+\subsection{Алгоритм Fennel}
+
+Алгоритм Fennel \cite{Fennel} представляет собой развитие идей потокового распределения графов и предлагает более формализованный подход к построению эвристики. Вместо комбинирования дискретных метрик (количество соседей) и весовых функций, Fennel вводит непрерывную объективную функцию \(g(P)\), характеризующую качество текущего распределения \(P\).
+
+\subsubsection{Объективная функция}
+
+Авторы Fennel определяют объективную функцию для \(k\)-распределения следующим образом:
+\begin{equation*}
+    g(P)=\sum_{i=1}^k[e(S_i,S_i) - p\binom{|S_i|}{2}]
+\end{equation*}
+где:
+\begin{itemize}
+    \item \(e(S_i, S_i)\) — количество рёбер, оба конца которых лежат внутри шарда \(S_i\) (внутренние рёбра).
+    \item $p=2\alpha=m\frac{k^{\gamma-1}}{n^\gamma}$, $1\le\gamma\le 2$.
+    \item \(\alpha\) — параметр, регулирующий важность балансировки. 
+    \item \(\gamma\) — параметр, определяющий форму штрафа за размер шарда. В оригинальной работе рекомендуется \(\gamma = \frac{3}{2}\).
+\end{itemize}
+Логика функции проста: она поощряет размещение рёбер внутри одного шарда (увеличение \(e(S_i, S_i)\)) и штрафует за слишком большой размер шарда (член \(- p\binom{|S_i|}{2}\)), что способствует балансировке.
+
+\subsubsection{Инкрементальное вычисление и формула для \(\delta g\)}
+
+Ключевым преимуществом Fennel для потоковой обработки является то, что для принятия решения о размещении новой вершины \(v\) не нужно пересчитывать \(g(P)\) целиком. Достаточно вычислить прирост \(\delta g(v, S_i)\), который получит система, если вершина \(v\) будет добавлена в существующий шард \(S_i\).
+
+Tсли предположить, что соседи \(v\) уже распределены, то добавление \(v\) в \(S_i\) увеличит количество внутренних рёбер в этом шарде на число соседей \(v\), уже находящихся в \(S_i\), то есть на \(|S_i \cap N(v)|\).
+
+Штраф за размер шарда изменяется с \(- p\binom{|S_i|}{2}\) на \(- p\binom{|S_i|+1}{2}\). Таким образом, изменение \(\delta g(v, S_i)\) для шарда \(S_i\) вычисляется по формуле:
+\begin{equation} \label{eq:fennel_delta}
+\delta g(v, S_i) = |S_i \cap N(v)| - p (\binom{|S_i|+1}{2} - \binom{|S_i|}{2})
+\end{equation}
+
+Именно это значение и используется в качестве основной эвристики. Алгоритм выбирает для вершины \(v\) тот шард \(i\), который максимизирует \(\delta g(v, S_i)\). Такой подход позволяет производить все вычисления распределенно: каждый шард может независимо рассчитать \(\delta g\) для себя, после чего выбирается шард с максимальным значением, либо случайный среди максимальных равных.
+
+В рамках данной курсовой работы был реализован модуль потокового распределения вершин и модифицированы реализованные ранее модули:
+\begin{enumerate}
+    \item Классы имитации шины для общения компонентов
+    \item Класс Fennel-хранилища (FennelStorage), расширяющий обычное хранилище для поддержки алгоритма феннеля.
+\end{enumerate}
+
+\subsubsection{Структура проекта и основные зависимости}
+
+Языком разработки был выбран С++ в силу его низкоуровневости и скорости, а также с намереньем в дальнейшим внедрить эти наработки в графовую БД на С++ научного руководителя.
+
+Проект организован в виде набора заголовочных файлов (header files), что соответствует современным подходам разработки на C++. Основные файлы проекта:
+
+\begin{itemize}
+    \item \texttt{graph.hpp} -- содержит базовые классы для представления графовых структур.
+    \item \texttt{interface\_bus.hpp} -- содержит интерфейс, описывающий основные сообщения в шине.
+    \item \texttt{bus.hpp} -- содержит простую реализацию имитации шины.
+    \item \texttt{storage.hpp} -- реализует класс хранилища для управления вершинами.
+    \item \texttt{optimizer.hpp} -- содержит реализацию оптимизатора с вычислением метрики $g_v$.
+    \item \texttt{main.cpp} -- демонстрационный файл с тестовым сценарием.
+\end{itemize}
+
+Ниже представлен релевантный для решения задачи практики код. Полный код представлен в приложении А.
+
+\subsubsection{Классы для представления графовых структур (graph.hpp)}
+
+\textbf{Класс интерфейса шины (interface\_bus.hpp)}
+
+Крайне важный интерфейс, через который происходит взаимодействие всей системы. Описывает методы добавления, удаления и запроса вершин, а также объявлений о добавлении и удалении для возможности другим хранилищам знать где находится другая вершина.
+
+И наконец ключевые для алгоритма Кернигана-Лина методы получения граничных вершин и рёбер ask\_neigbours\_to\_storage и ask\_edges\_to\_storage.
+
+\begin{lstlisting}[language=C++, caption=Базовая структура класса IBus, label=lst:ibus1]
+template <typename KeyType> 
+class IBus {
+public:
+    virtual Node<KeyType> request_node(const NodeKey<KeyType>& node) = 0;
+    virtual int send_add_node(const Node<KeyType>& node) = 0;
+    virtual bool send_add_node(const Node<KeyType>& node, int storage_id) = 0;
+    virtual bool send_remove_node(const NodeKey<KeyType>& node) = 0;
+    virtual bool send_remove_node(const NodeKey<KeyType>& node, int storage_id) = 0;
+    virtual int ask_who_has(int asker_id, NodeKey<KeyType> key) = 0;
+    virtual void announce_add(NodeKey<KeyType> key, int storage_id, std::set<Edge<KeyType>> edges) = 0;
+    virtual void announce_remove(NodeKey<KeyType> key, int storage_id) = 0;
+    virtual float get_streaming_euristics_change(const Node<KeyType>& node, int storage_id) = 0;
+    // запрашивает у source вершины, соседствующие с target
+    virtual std::set<Node<KeyType>> ask_neigbours_to_storage(int source, int target) = 0;
+    // запрашивает у source рёбра, идущие в target
+    virtual std::set<Edge<KeyType>> ask_edges_to_storage(int source, int target) = 0;
+};
+\end{lstlisting}
+
+\textbf{Класс шины SimpleBus (bus.hpp)}
+
+Простая синхронная однопоточная реализация методов IBus. В данной работе важна реализация send\_add\_node, реализующий выбор хранилища для отправки вершины и вспомогательногом метода get\_streaming\_euristics\_change:
+
+\begin{lstlisting}[language=C++, caption=Реализация метода get\_streaming\_euristics\_change, label=lst:bus1]
+int send_add_node(const Node<KeyType>& node) override {
+    std::vector<IStorage<KeyType>*> best_storages;
+    float best_euristics = -10000000;
+
+    for (typename std::map<int, IStorage<KeyType>*>::iterator it = storages.begin(); it != storages.end(); ++it) {
+        float this_euristics = it->second->get_streaming_euristics_change(node, total_edges);
+        if (this_euristics > best_euristics) {
+            best_storages.clear();
+            best_storages.push_back(it->second);
+            best_euristics = this_euristics;
+        } else if (this_euristics == best_euristics) {
+            best_storages.push_back(it->second);
+        }
+    }
+    if (best_storages.empty()) {
+        return -1;
+    } else {
+        std::uniform_int_distribution<> dist{0, best_storages.size() - 1};
+        IStorage<KeyType>* random_storage = best_storages[dist(gen)];
+        send_add_node(node, random_storage->get_id());
+        return random_storage->get_id();
+    }
+};
+
+float get_streaming_euristics_change(const Node<KeyType>& node, int storage_id) override {
+    if (storages.find(storage_id) == storages.end()) {
+        return false;
+    }
+    return storages[storage_id]->get_streaming_euristics_change(node, total_edges);
+}
+\end{lstlisting}
+
+Как можно увидеть, метод опрашивает все хранилища и выбирает наилучшее. Если "лучших" окажется несколько (обычно если ни в одном хранилище нет соседей новой вершины), то выбирается случайный.
+
+\textbf{Класс хранилища (storage.hpp)}
+
+Класс \texttt{Storage} представляет собой хранилище вершин графа и реализует логику управления внутренними и внешними связями.
+
+\subsubsection{Структура класса FennelStorage}
+
+Для работы Феннель-алгоритму требуется знания о кол-ве шардов, а также балансировочное число. Для передачи этих данных используется структура FennelParameters, представленная в листниге \ref{lst:FennelParameters}.
+
+\begin{lstlisting}[language=C++, caption=Структура FennelParameters, label=lst:FennelParameters]
+struct FennelParameters {
+    /*k*/int storage_number;
+    /*gamma*/float balancing_number;
+};
+\end{lstlisting}
+
+Само же хранилище FennelStorage представлено в листинге \ref{lst:FennelStorage}
+\begin{lstlisting}[language=C++, caption=Базовая структура класса Storage, label=lst:FennelStorage]
+template <typename KeyType> 
+class FennelStorage : public Storage<KeyType> {
+protected:
+typedef Node<KeyType> StorageNode;
+typedef NodeKey<KeyType> Key;
+FennelParameters params;
+int number_of_nodes;
+float streaming_euristics = 0;
+
+float get_p_parameter(int number_of_nodes, long number_of_edges){
+    if (number_of_nodes == 0) {
+        return 0;
+    } 
+    return 2 * number_of_edges * std::pow(params.storage_number , (params.balancing_number - 1)) / std::pow(number_of_nodes, params.balancing_number);
+}
+
+float fennel_function(const Node<KeyType>& node, long total_edges) {
+    float p = get_p_parameter(number_of_nodes, total_edges);
+    float dg = 0;
+    for (typename std::map<Key, Edge<KeyType>>::const_iterator edge_it = node.edges.begin(); edge_it != node.edges.end(); ++edge_it) {
+        const Key& neighbor_key = edge_it->first;
+        const Edge<KeyType>& edge = edge_it->second;
+        // Ищем соседа в текущем хранилище
+        typename std::map<Key, StorageNode>::iterator it2 = this->nodes.find(neighbor_key);
+        if (it2 != this->nodes.end()) {
+            ++dg;
+        }
+    }
+    dg -= p * this->size();
+    return dg;
+}
+public:
+
+FennelStorage(int id, FennelParameters _params, std::map<Key, StorageNode> _nodes = std::map<Key, StorageNode>()) 
+    : Storage<KeyType>(id, _nodes), params(_params) {}
+
+float get_streaming_euristics_change(const Node<KeyType>& node, long total_edges) override {
+    return fennel_function(node, total_edges);
+}
+
+void get_add_announcement(Key key, int announcer_id, std::set<Edge<KeyType>> edges) override {
+    ++number_of_nodes;
+    Storage<KeyType>::get_add_announcement(key, announcer_id, edges);
+};
+
+void get_remove_announcement(Key key, int announcer_id) override {
+    --number_of_nodes;
+    Storage<KeyType>::get_remove_announcement(key, announcer_id);
+}
+};
+\end{lstlisting}

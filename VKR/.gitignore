@@ -1,0 +1,10 @@
+*
+!/**/
+!*.pdf
+!*.tex
+!.gitignore
+!*.png
+!*.jpg
+!*.csv
+!*.bib
+!*.bst
