@@ -5,18 +5,25 @@
 \usepackage{graphicx}
 \usepackage{array}
 \usepackage{etoolbox}
-\usepackage{subfig}
 \usepackage{csvsimple}
 \usepackage{float}
 \usepackage{subcaption}
 \usepackage{verbatim}
 \usepackage{listings}
 \usepackage{xcolor}
-\usepackage[numbers]{natbib}
-\usepackage{bibentry}
+%\usepackage[numbers]{natbib}
+%\usepackage{bibentry}
+\usepackage{csquotes}
+\usepackage[backend=biber,
+            bibencoding=utf8,
+            sorting=none,        % Сортировка по мере упоминания (как в тексте)
+            style=gost-numeric,  % Стиль: нумерованный (ГОСТ)
+            autolang=other       % Учет языка при выводе данных
+            ]{biblatex}
 \usepackage{amsmath}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
-\usepackage[colorlinks,allcolors=black]{hyperref}
 \usepackage{tabularx}
+\usepackage{multirow}
 \usepackage{enumitem}
+\usepackage[colorlinks,allcolors=black]{hyperref}
