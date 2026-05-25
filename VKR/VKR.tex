@@ -6,15 +6,18 @@
 \input{includes/listings}
 \input{includes/defines}
 \begin{document}
-\input{includes/titlepage}
+\includepdf[pages=1]{includes/titlepage.pdf}
 \pagebreak
 
 бла бла
 
 \newpage
+\include{referat}
 \tableofcontents
 \newpage
 \nonumsection{Введение}
+
+не пустое
 \newpage
 
 \include{research_part/research_part}
@@ -22,11 +25,11 @@
 \include{technological_part}
 \newpage
 \nonumsection{Заключение}
-
+не пустое
 \newpage
 \include{citations}
 \newpage
-%\include{appendix}
+\include{applications/applications}
 %---------------------------------------------
 \end{document}
 

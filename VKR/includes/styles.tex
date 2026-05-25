@@ -1,7 +1,3 @@
-\usepackage[T2A]{fontenc}
-\usepackage[utf8]{inputenc}
-\usepackage[russian]{babel}
-
 \usepackage[left=30mm, right=10mm, top=20mm, bottom=20mm]{geometry}
 
 %\usepackage{showframe} - Показывает границы, чтобы проверить, что ничто никуда не зашло
@@ -14,4 +10,50 @@
 \usepackage{indentfirst}
 \setlength{\parindent}{1.25cm} % Абзацный отступ 1.25 см
 
+\contentsmargin{1.25em}
+
+\titlecontents{section}
+  [0cm]
+  {}
+  {\hspace{0.4cm}\contentslabel{0.4cm}}
+  {}
+  {\titlerule*[0.5pc]{.}\contentspage}
+
+\titlecontents{subsection}
+  [0cm]
+  {}
+  {\hspace{0.8cm}\contentslabel{0.8cm}}
+  {}
+  {\titlerule*[0.5pc]{.}\contentspage}
+
+\titlecontents{subsubsection}
+  [0cm]
+  {}
+  {\hspace{1.2cm}\contentslabel{1.2cm}}
+  {}
+  {\titlerule*[0.5pc]{.}\contentspage}
+
+
+\defbibenvironment{bibliography}
+  {\list
+     {\printtext[labelnumberwidth]{%
+        \printfield{labelnumber}}}
+     {
+      \setlength{\labelwidth}{\labelnumberwidth}
+      \setlength{\leftmargin}{1.25cm}
+      \setlength{\labelsep}{0.5em}
+      \setlength{\itemindent}{0pt}
+      \setlength{\bibitemsep}{\baselineskip}
+      \setlength{\parsep}{0pt}
+     }}
+  {\endlist}
+  {\item}
+
+\expandafter\def\expandafter\normalsize\expandafter{%
+    \normalsize%
+    \setlength\abovedisplayskip{0pt}%
+    \setlength\belowdisplayskip{0pt}%
+    \setlength\abovedisplayshortskip{-15pt}%
+    \setlength\belowdisplayshortskip{0pt}%
+}
 \sloppy
