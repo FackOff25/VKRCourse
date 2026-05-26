@@ -1,0 +1,311 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.6 Chrome/140.0.7339.249 Electron/38.8.0 Safari/537.36" version="29.3.6" pages="2">
+  <diagram name="Fennel" id="-lvFaBhQ1HCBBLHgXXwi">
+    <mxGraphModel dx="2951" dy="1719" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-5" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Начало" vertex="1">
+          <mxGeometry height="80" width="120" x="145" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-3" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Конец" vertex="1">
+          <mxGeometry height="80" width="120" x="145" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-7" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-6" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-4" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="Вершина со смежными рёбрами" vertex="1">
+          <mxGeometry height="60" width="170" x="120" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-9" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-8" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Рассылка вершины хранилищам" vertex="1">
+          <mxGeometry height="60" width="120" x="145" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-11" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-10" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-8" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="Получение значения&lt;div&gt;функции метода&amp;nbsp;&lt;/div&gt;&lt;div&gt;потокового&amp;nbsp;&lt;/div&gt;&lt;div&gt;распределения от&amp;nbsp;&lt;/div&gt;&lt;div&gt;каждого хранилища&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="170" x="120" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-12" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-3" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Объявление отправления вершины в хранилище с максимальным значением" vertex="1">
+          <mxGeometry height="60" width="165" x="122.5" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-13" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Мастер" vertex="1">
+          <mxGeometry height="30" width="60" x="170" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-14" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-18" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-15" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Начало" vertex="1">
+          <mxGeometry height="80" width="120" x="455" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-16" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Конец" vertex="1">
+          <mxGeometry height="80" width="120" x="770" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-27" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-26" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-18" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="Получение новой&lt;div&gt;вершины&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="170" x="430" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-25" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Хранилище" vertex="1">
+          <mxGeometry height="30" width="60" x="660" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-29" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-28" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-26" parent="1" style="shape=loopLimit;whiteSpace=wrap;html=1;" value="Проход по рёбрам" vertex="1">
+          <mxGeometry height="70" width="170" x="430" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-33" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-32" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-36" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="610" y="510" />
+              <mxPoint x="610" y="650" />
+            </Array>
+            <mxPoint x="515" y="650" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-28" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="Сосед&lt;div&gt;принадлежит&lt;/div&gt;&lt;div&gt;хранилищу&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="160" x="435" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-31" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-30" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="515" y="260" as="sourcePoint" />
+            <mxPoint x="515" y="370" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-30" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Расчёт p параметра хранилища" vertex="1">
+          <mxGeometry height="60" width="120" x="455" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-35" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-34" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-32" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Увеличение счётчика соседей в хранилище" vertex="1">
+          <mxGeometry height="60" width="120" x="455" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-34" parent="1" style="shape=loopLimit;whiteSpace=wrap;html=1;size=20;rotation=-180;" value="" vertex="1">
+          <mxGeometry height="70" width="170" x="430" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-38" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Да" vertex="1">
+          <mxGeometry height="20" width="60" x="500" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-39" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Нет" vertex="1">
+          <mxGeometry height="20" width="30" x="610" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-41" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-40" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="515" y="780" />
+              <mxPoint x="640" y="780" />
+              <mxPoint x="640" y="100" />
+              <mxPoint x="835" y="100" />
+            </Array>
+            <mxPoint x="515" y="740" as="sourcePoint" />
+            <mxPoint x="515" y="870" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-40" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Расчёт счётчик - p параметр * кол-во вершин в хранилище" vertex="1">
+          <mxGeometry height="60" width="135" x="767.5" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-43" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-42" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="835" y="190" as="sourcePoint" />
+            <mxPoint x="835" y="330" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-42" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="Отправка рассчитанного значения" vertex="1">
+          <mxGeometry height="60" width="170" x="750" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-49" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-42" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-48" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="835" y="270" as="sourcePoint" />
+            <mxPoint x="835" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-48" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="Получение объявления о добавлении вершины в хранилище" vertex="1">
+          <mxGeometry height="60" width="180" x="740" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-51" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-48" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-50" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="830" y="350" as="sourcePoint" />
+            <mxPoint x="830" y="490" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-55" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-50" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-52">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="730" y="420" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-60" connectable="0" parent="yrJQJbRU6hMhdS2jpaQv-55" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="нет" vertex="1">
+          <mxGeometry relative="1" x="0.3183" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-56" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-50" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-54">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="940" y="420" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-61" connectable="0" parent="yrJQJbRU6hMhdS2jpaQv-56" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="да" vertex="1">
+          <mxGeometry relative="1" x="0.3182" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-50" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="Добавляется в это хранилище?" vertex="1">
+          <mxGeometry height="100" width="160" x="750" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-59" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-52" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-16">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="730" y="650" />
+              <mxPoint x="830" y="650" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-52" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Добавление вершины во внешние соседи всех её соседей в этом хранилище" vertex="1">
+          <mxGeometry height="90" width="120" x="670" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-58" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-53" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="yrJQJbRU6hMhdS2jpaQv-16">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="940" y="650" />
+              <mxPoint x="830" y="650" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-53" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Добавление вершины в локальные соседи всех её соседей в этом хранилище" vertex="1">
+          <mxGeometry height="90" width="120" x="880" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-57" edge="1" parent="1" source="yrJQJbRU6hMhdS2jpaQv-54" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yrJQJbRU6hMhdS2jpaQv-53" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yrJQJbRU6hMhdS2jpaQv-54" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Добавление вершины в&amp;nbsp; хранилище" vertex="1">
+          <mxGeometry height="50" width="120" x="880" y="470" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="AFdBUSo-wU7JPsdofgsX" name="KL">
+    <mxGraphModel dx="2431" dy="1415" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ghDOItCZQycpmSH2Vc80-5" edge="1" parent="1" source="ghDOItCZQycpmSH2Vc80-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ghDOItCZQycpmSH2Vc80-4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Начало" vertex="1">
+          <mxGeometry height="80" width="120" x="200" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-9" edge="1" parent="1" source="ghDOItCZQycpmSH2Vc80-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ghDOItCZQycpmSH2Vc80-8" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-4" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" value="Рассылка сообщения о блокировании хранилищ на перебалансировку" vertex="1">
+          <mxGeometry height="60" width="210" x="155" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-40" edge="1" parent="1" source="ghDOItCZQycpmSH2Vc80-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ghDOItCZQycpmSH2Vc80-33" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-8" parent="1" style="shape=loopLimit;whiteSpace=wrap;html=1;" value="Итерации пока не останется вершин для перемещения или не будет достигнут лимит итераций" vertex="1">
+          <mxGeometry height="80" width="205" x="157.5" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-11" edge="1" parent="1" source="ghDOItCZQycpmSH2Vc80-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ghDOItCZQycpmSH2Vc80-10" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="230" as="sourcePoint" />
+            <mxPoint x="263" y="370" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Определение вершин на границе между хранилищами" vertex="1">
+          <mxGeometry height="60" width="146" x="187" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-15" edge="1" parent="1" source="ghDOItCZQycpmSH2Vc80-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ghDOItCZQycpmSH2Vc80-14" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="260" y="310" as="sourcePoint" />
+            <mxPoint x="260" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-14" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Расчёт g_v для всех граничных вершин" vertex="1">
+          <mxGeometry height="60" width="146" x="187" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-25" edge="1" parent="1" source="ghDOItCZQycpmSH2Vc80-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ghDOItCZQycpmSH2Vc80-24" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-22" parent="1" style="shape=loopLimit;whiteSpace=wrap;html=1;rotation=-180;" value="" vertex="1">
+          <mxGeometry height="40" width="205" x="157.5" y="1010" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-24" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Начало" vertex="1">
+          <mxGeometry height="80" width="120" x="200" y="1080" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-28" edge="1" parent="1" source="ghDOItCZQycpmSH2Vc80-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ghDOItCZQycpmSH2Vc80-31" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-29" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Перемещение вершины и пометка её как перемещённой" vertex="1">
+          <mxGeometry height="60" width="130" x="195" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-30" edge="1" parent="1" source="ghDOItCZQycpmSH2Vc80-31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ghDOItCZQycpmSH2Vc80-32" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-31" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Обновление списка граничных вершин" vertex="1">
+          <mxGeometry height="60" width="130" x="195" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-39" edge="1" parent="1" source="ghDOItCZQycpmSH2Vc80-32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ghDOItCZQycpmSH2Vc80-38" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-32" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Перерасчёт g_v для связанных с перемещёнными граничными вершинами" vertex="1">
+          <mxGeometry height="60" width="155" x="182.5" y="870" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-35" edge="1" parent="1" source="ghDOItCZQycpmSH2Vc80-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ghDOItCZQycpmSH2Vc80-34" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-33" parent="1" style="shape=loopLimit;whiteSpace=wrap;html=1;" value="Прохождение по всем граничным вершинам" vertex="1">
+          <mxGeometry height="80" width="205" x="157.5" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-37" edge="1" parent="1" source="ghDOItCZQycpmSH2Vc80-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ghDOItCZQycpmSH2Vc80-29" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-44" connectable="0" parent="ghDOItCZQycpmSH2Vc80-37" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Да" vertex="1">
+          <mxGeometry relative="1" x="1" as="geometry">
+            <mxPoint y="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-43" edge="1" parent="1" source="ghDOItCZQycpmSH2Vc80-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="160" y="650" />
+              <mxPoint x="160" y="940" />
+            </Array>
+            <mxPoint x="260" y="940" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-45" connectable="0" parent="ghDOItCZQycpmSH2Vc80-43" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Нет" vertex="1">
+          <mxGeometry relative="1" x="-0.5217" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-34" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="g_v вершины положителен" vertex="1">
+          <mxGeometry height="80" width="137.5" x="191.25" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-42" edge="1" parent="1" source="ghDOItCZQycpmSH2Vc80-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="ghDOItCZQycpmSH2Vc80-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ghDOItCZQycpmSH2Vc80-38" parent="1" style="shape=loopLimit;whiteSpace=wrap;html=1;rotation=-180;" value="" vertex="1">
+          <mxGeometry height="40" width="205" x="157.5" y="950" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
