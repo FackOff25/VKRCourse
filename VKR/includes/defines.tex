@@ -8,6 +8,13 @@
 %\dottedcontents{section}[2.5em]{\bfseries}{2em}{0.5pc}
 %\dottedcontents{subsection}[3em]{}{2em}{0.5pc}
 
+\regtotcounter{figure}
+\regtotcounter{table}
+\regtotcounter{lstlisting}
+\newtotcounter{applications}
+\newtotcounter{citecnt}
+\AtEveryBibitem{\stepcounter{citecnt}}
+
 \urlstyle{same}
 
 %***natbib, bibentry***%
