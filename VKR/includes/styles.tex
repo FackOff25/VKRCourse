@@ -65,4 +65,37 @@
   {1em}
   {}
 
+\setlist{
+  listparindent=\parindent
+}
+
+\setlist[itemize]{
+  nosep,
+  align=left,
+  leftmargin=0pt,
+  labelwidth=0.75cm,
+  itemindent=2cm,
+  labelsep=0pt,
+  label=---
+}
+\setlist*[itemize,2]{
+  leftmargin=\labelwidth + \labelsep,
+  label=\textbf{--}
+}
+
+\setlist[enumerate]{
+  nosep,
+  align=left,
+  leftmargin=0pt,
+  labelwidth=0.75cm,
+  itemindent=2cm,
+  labelsep=0pt,
+  label=\arabic*)
+}
+\AddEnumerateCounter{\asbuk}{\russian@alph}{щ}
+\setlist*[enumerate,2]{
+  leftmargin=0.75cm,
+  label=\asbuk*), ref=\asbuk*
+}
+
 \sloppy
