@@ -7,27 +7,27 @@
 \input{includes/defines}
 \begin{document}
 \includepdf[pages=1]{includes/titlepage.pdf}
-\pagebreak
-
-бла бла
-
+\includepdf[pages=1-3]{includes/task_and_plan.pdf}
+%\pagebreak
 \newpage
-\include{referat}
+\include{extra_pages/abstract}
+\newpage
+\include{extra_pages/referat}
 \tableofcontents
 \newpage
-\nonumsection{Введение}
-
-не пустое
+\include{extra_pages/shortenings}
 \newpage
-
+\include{extra_pages/introduction}
+\newpage
 \include{research_part/research_part}
-\include{contructioning_part/constructoring_part.tex}
-\include{technological_part}
 \newpage
-\nonumsection{Заключение}
-не пустое
+\include{contructioning_part/constructoring_part}
 \newpage
-\include{citations}
+\include{technological_part/technological_part}
+\newpage
+\include{extra_pages/conclusion}
+\newpage
+\include{extra_pages/citations}
 \newpage
 \include{applications/applications}
 %---------------------------------------------

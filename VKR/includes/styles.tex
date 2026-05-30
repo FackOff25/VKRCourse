@@ -12,26 +12,30 @@
 
 \contentsmargin{1.25em}
 
-\titlecontents{section}
-  [0cm]
-  {}
-  {\hspace{0.4cm}\contentslabel{0.4cm}}
-  {}
-  {\titlerule*[0.5pc]{.}\contentspage}
+\titlecontents{section}[0cm]{}{\hspace{0.4cm}\contentslabel{0.4cm}}{}{\titlerule*[0.5pc]{.}\contentspage}
+\titlecontents{subsection}[0.4cm]{}{\hspace{0.8cm}\contentslabel{0.8cm}}{}{\titlerule*[0.5pc]{.}\contentspage}
+\titlecontents{subsubsection}[1.2cm]{}{\hspace{1.2cm}\contentslabel{1.2cm}}{}{\titlerule*[0.5pc]{.}\contentspage}
 
-\titlecontents{subsection}
-  [0cm]
-  {}
-  {\hspace{0.8cm}\contentslabel{0.8cm}}
-  {}
-  {\titlerule*[0.5pc]{.}\contentspage}
+%\titlecontents{section}
+%  [0cm]
+%  {}
+%  {\hspace{0.4cm}\contentslabel{0.4cm}}
+%  {}
+%  {\titlerule*[0.5pc]{.}\contentspage}
 
-\titlecontents{subsubsection}
-  [0cm]
-  {}
-  {\hspace{1.2cm}\contentslabel{1.2cm}}
-  {}
-  {\titlerule*[0.5pc]{.}\contentspage}
+%\titlecontents{subsection}
+%  [0cm]
+%  {}
+%  {\hspace{0.8cm}\contentslabel{0.8cm}}
+%  {}
+%  {\titlerule*[0.5pc]{.}\contentspage}
+
+%\titlecontents{subsubsection}
+%  [0cm]
+%  {}
+%  {\hspace{1.2cm}\contentslabel{1.2cm}}
+%  {}
+%  {\titlerule*[0.5pc]{.}\contentspage}
 
 
 \defbibenvironment{bibliography}
@@ -53,4 +57,12 @@
     \normalsize%
     \setlength\abovedisplayskip{6pt}%
 }
+
+\titleformat{\section}{\normalfont\Large\bfseries\centering}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries\centering}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\bfseries}
+  {\hspace*{1.25cm}\thesubsubsection}
+  {1em}
+  {}
+
 \sloppy
