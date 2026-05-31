@@ -5,18 +5,19 @@
 	extendedchars=\true,
 	inputencoding=utf8x,
 	keepspaces=true,
-	frame=tb,
+	frame=single,
 	escapechar=`,
-	xleftmargin=0.5cm,
-	xrightmargin=0cm,
+	%xleftmargin=0.5cm,
+	%xrightmargin=0cm,
 	columns=fixed,
-	numbers=left,
-	numbersep=4pt,
+  numbers=none,
+	%numbers=left,
+	%numbersep=4pt,
 	showspaces=false,
 	showstringspaces=false,
 	breakatwhitespace=true,
 	breaklines=true,
-	basicstyle=\color{black}\small\sffamily,
+	basicstyle=\color{black}\small,
 	commentstyle=\color{black}\itshape,
 	stringstyle=\color{black},
 	numberstyle=\footnotesize\color{black},
@@ -27,6 +28,11 @@
   mathescape=false,
   aboveskip=3pt,
   belowskip=3pt
+}
+
+\captionsetup[lstlisting]{
+    justification=raggedright,
+    singlelinecheck=false
 }
 
 \lstset{

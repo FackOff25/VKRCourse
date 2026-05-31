@@ -10,8 +10,11 @@
 \usepackage{indentfirst}
 \setlength{\parindent}{1.25cm} % Абзацный отступ 1.25 см
 
-\contentsmargin{1.25em}
+% магически впихивает всё в рамки geometry
+\sloppy
 
+% Настройки пунктов содержания
+\contentsmargin{1.25em}
 \titlecontents{section}[0cm]{}{\hspace{0.4cm}\contentslabel{0.4cm}}{}{\titlerule*[0.5pc]{.}\contentspage}
 \titlecontents{subsection}[0.4cm]{}{\hspace{0.8cm}\contentslabel{0.8cm}}{}{\titlerule*[0.5pc]{.}\contentspage}
 \titlecontents{subsubsection}[1.2cm]{}{\hspace{1.2cm}\contentslabel{1.2cm}}{}{\titlerule*[0.5pc]{.}\contentspage}
@@ -38,6 +41,7 @@
 %  {\titlerule*[0.5pc]{.}\contentspage}
 
 
+% Настройка списка литературы
 \defbibenvironment{bibliography}
   {\list
      {\printtext[labelnumberwidth]{%
@@ -53,11 +57,13 @@
   {\endlist}
   {\item}
 
+% Удаление лишнего отступа над equation
 \expandafter\def\expandafter\normalsize\expandafter{%
     \normalsize%
     \setlength\abovedisplayskip{6pt}%
 }
 
+% Настройки заголовков
 \titleformat{\section}{\normalfont\Large\bfseries\centering}{\thesection}{1em}{}
 \titleformat{\subsection}{\normalfont\large\bfseries\centering}{\thesubsection}{1em}{}
 \titleformat{\subsubsection}{\normalfont\normalsize\bfseries}
@@ -65,10 +71,12 @@
   {1em}
   {}
 
+% Красная строка внутри списков
 \setlist{
   listparindent=\parindent
 }
 
+% Стили списков
 \setlist[itemize]{
   nosep,
   align=left,
@@ -80,7 +88,7 @@
 }
 \setlist*[itemize,2]{
   leftmargin=\labelwidth + \labelsep,
-  label=\textbf{--}
+  label=\textbf{--},
 }
 
 \setlist[enumerate]{
@@ -98,4 +106,9 @@
   label=\asbuk*), ref=\asbuk*
 }
 
-\sloppy
+\captionsetup[figure]{name=Рисунок}
+\captionsetup[figure]{
+  justification=centering,
+  singlelinecheck=false,
+  labelsep=endash
+}
