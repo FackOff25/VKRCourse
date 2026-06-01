@@ -8,7 +8,7 @@
 #include <map>
 
 template <typename KeyType>
-class ExternalStorageOptimizer {
+class KLExternalStorageOptimizer {
 private:
 IBus<KeyType>* bus;
 
