@@ -340,7 +340,6 @@ IBus<KeyType>* bus;
 
 float calculate_gv(const Node<KeyType>& node, std::set<Edge<KeyType>> boundary_edges) const;
 std::map<int, std::set<Node<KeyType>>> get_negative_gvs(std::map<int, std::map<Node<KeyType>, float>> full_map);
-    
 public:
 std::map<int, std::map<Node<KeyType>, float>> calculate_gvs(int storage1, int storage2) const;
 void optimize(int storage1, int storage2, int iterations_limit = 5);
