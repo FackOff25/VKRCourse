@@ -7,8 +7,11 @@
 \input{includes/defines}
 \begin{document}
 \includepdf[pages=1]{includes/titlepage.pdf}
-\includepdf[pages=1-3]{includes/task_and_plan.pdf}
-%\pagebreak
+\ifdefined\ForTestVkr
+\else
+    \includepdf[pages=1-3]{includes/task_and_plan.pdf}
+\fi
+
 \newpage
 \include{extra_pages/abstract}
 \newpage

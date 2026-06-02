@@ -1,5 +1,12 @@
-\nonumsection{Приложение А. Техническое задание} \stepcounter{applications}
+\stepcounter{applications}
+\section*{Приложение А}
+\addcontentsline{toc}{section}{Приложение А. Техническое задание}
 \begin{center}
+    \section*{Техническое задание}
     Листов 8
 \end{center}
-\includepdf[pages=1-8]{includes/TZ.pdf}
+\ifdefined\ForTestVkr
+\includepdf[pages=2-8]{includes/TZ.pdf}
+\else
+    \includepdf[pages=1-8]{includes/TZ.pdf}
+\fi

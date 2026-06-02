@@ -9,23 +9,18 @@
 В отличие от Schism и SWORD, где базовой единицей моделирования является совместное использование вершин в запросах, WAWPart использует переходы между вершинами как основную единицу анализа.
 
 Пусть запрос $q \in Q$ задаёт последовательность:
-
 \begin{equation*}
 q = (v_1, v_2, \dots, v_n).
 \end{equation*}
-
 Тогда он индуцирует множество переходов:
-
 \begin{equation*}
 T(q) = \{(v_i, v_{i+1}) \mid i = 1, \dots, n-1\}.
 \end{equation*}
-
 Именно эти переходы являются основой построения модели рабочей нагрузки.
 
 \textbf{Модель рабочей нагрузки}
 
 WAWPart строит граф рабочей нагрузки:
-
 \begin{equation*}
 G_w = (V, E_w),
 \end{equation*}
@@ -36,7 +31,6 @@ G_w = (V, E_w),
 \textbf{Базовое вычисление веса ребра}
 
 Наиболее простая форма веса определяется как количество наблюдаемых переходов:
-
 \begin{equation*}
 w(u,v) = \sum_{q \in Q} \sum_{(x,y)\in T(q)} \mathbb{I}[x=u \land y=v],
 \end{equation*}
@@ -47,7 +41,6 @@ w(u,v) = \sum_{q \in Q} \sum_{(x,y)\in T(q)} \mathbb{I}[x=u \land y=v],
 \textbf{Учёт частоты выполнения запросов}
 
 Если различные запросы выполняются с разной частотой, вводится вес запроса $f(q)$:
-
 \begin{equation*}
 w(u,v) = \sum_{q \in Q} f(q)\cdot \sum_{(x,y)\in T(q)} \mathbb{I}[x=u \land y=y].
 \end{equation*}
@@ -61,18 +54,15 @@ w(u,v) = \sum_{q \in Q} f(q)\cdot \sum_{(x,y)\in T(q)} \mathbb{I}[x=u \land y=y]
 Помимо абсолютных частот, WAWPart использует вероятностную интерпретацию переходов.
 
 Для вершины $u$ вводится вероятность перехода к $v$:
-
 \begin{equation*}
 P(u,v) = \frac{N(u,v)}{\sum_{x \in V} N(u,x)},
 \end{equation*}
 где $N(u,v)$ --- число переходов из $u$ в $v$.
 
 Тогда вес может быть определён как:
-
 \begin{equation*}
 w(u,v) = N(u,v)\cdot P(u,v).
 \end{equation*}
-
 Такая форма усиливает влияние устойчивых и структурно значимых переходов, снижая влияние случайных шумовых переходов.
 
 \textbf{Позиционная значимость переходов в обходах графа}
@@ -80,14 +70,12 @@ w(u,v) = N(u,v)\cdot P(u,v).
 Важной особенностью WAWPart является учёт позиции перехода внутри обхода графа.
 
 Пусть переход $(v_i, v_{i+1})$ находится на позиции $i$ в запросе длины $n$. Тогда вводится весовой коэффициент:
-
 \begin{equation*}
 \phi(i,n) = \frac{1}{1 + \alpha \cdot i},
 \end{equation*}
 где $\alpha$ --- параметр затухания значимости.
 
 Тогда итоговый вклад перехода определяется как:
-
 \begin{equation*}
 w(u,v) = \sum_{q \in Q} f(q)\cdot \sum_{(v_i,v_{i+1})\in T(q)} \mathbb{I}[\cdot]\cdot \phi(i,n).
 \end{equation*}
@@ -99,12 +87,10 @@ w(u,v) = \sum_{q \in Q} f(q)\cdot \sum_{(v_i,v_{i+1})\in T(q)} \mathbb{I}[\cdot]
 WAWPart вводит дополнительную модель стоимости пересечения границ партиций.
 
 Если переход $(u,v)$ выполняется между разными партициями, он вносит штраф:
-
 \begin{equation*}
 c(u,v) = \delta(u,v)\cdot w(u,v),
 \end{equation*}
 где:
-
 \begin{equation*}
 \delta(u,v)=
 \begin{cases}
@@ -114,7 +100,6 @@ c(u,v) = \delta(u,v)\cdot w(u,v),
 \end{equation*}
 
 Таким образом, итоговая цель разбиения сводится к минимизации:
-
 \begin{equation*}
 \min \sum_{(u,v)\in E_w} w(u,v)\delta(u,v).
 \end{equation*}
@@ -122,7 +107,6 @@ c(u,v) = \delta(u,v)\cdot w(u,v),
 \textbf{Пороговая фильтрация рёбер графа рабочей нагрузки}
 
 Для уменьшения сложности обработки вводится фильтрация слабых переходов:
-
 \begin{equation*}
 E_w = \{(u,v)\mid w(u,v) > \theta\}.
 \end{equation*}
@@ -145,12 +129,10 @@ E_w = \{(u,v)\mid w(u,v) > \theta\}.
 \textbf{Итоговая формализация}
 
 В результате построения графа рабочей нагрузки задача разбиения формулируется как оптимизация weighted traversal-cut:
-
 \begin{equation*}
 \min \sum_{(u,v)\in E_w} w(u,v)\delta(u,v),
 \end{equation*}
 при ограничении балансировки:
-
 \begin{equation*}
 |P_i| \leq (1+\varepsilon)\frac{|V|}{k}.
 \end{equation*}
