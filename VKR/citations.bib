@@ -1,45 +1,3 @@
-@article{SGP,
-  author    = {Isabelle Stanton and Gabriel Kliot},
-  title     = {Streaming Graph Partitioning for Large Distributed Graphs},
-  booktitle = {KDD},
-  year      = {2012},
-  pages     = {1222--1230}
-}
-
-@article{Fennel,
-  author    = {Charalampos Tsourakakis and Christos Gkantsidis and Bozidar Radunovic and Milan Vojnovic},
-  title     = {Fennel: Streaming Graph Partitioning for Massive Scale Graphs},
-  booktitle = {WSDM},
-  year      = {2014},
-  pages     = {333--342},
-  doi       = {10.1145/2556195.2556213},
-}
-
-@article{NP-problems,
-  title     = {Some simplified {NP}-complete problems},
-  author    = {Garey, Michael R. and Johnson, David S. and Stockmeyer, Larry},
-  booktitle = {Proceedings of the 6th Annual {ACM} Symposium on Theory of Computing},
-  pages     = {47--63},
-  year      = {1974},
-  doi       = {10.1145/800119.803884}
-}
-@misc{ArangoDBRepo,
-  author = {},
-  howpublished = {\url{https://github.com/arangodb/arangodb}},
-  title = {Репозиторий ArangoDB},
-  year = {2025},
-  note = {[Обращение: (21.09.2025)]}
-}
-
-@article{VertexCut,
-  author = {Joseph E. Gonzalez and Yucheng Low and Haijie Gu and Danny Bickson and Carlos Guestrin},
-  booktitle = {OSDI},
-  number = {3},
-  title = {PowerGraph: Distributed Graph-Parallel Computation on Natural Graphs},
-  volume = {6},
-  year = {2012}
-}
-
 @article{MetisOG,
   title     = {A fast and high quality multilevel scheme for partitioning irregular graphs},
   author    = {Karypis, George and Kumar, Vipin},
@@ -52,108 +10,152 @@
   doi       = {10.1137/S1064827595287997}
 }
 
-@article{EvoCut,
-  title     = {Finding sparse cuts locally using evolving sets},
-  author    = {Andersen, Reid and Peres, Yuval},
-  booktitle = {Proceedings of the 41st Annual {ACM} Symposium on Theory of Computing},
-  pages     = {235--244},
-  year      = {2009},
-  doi       = {10.1145/1536414.1536449}
+@article{Taper,
+  title     = {TAPER: query-aware, partition-enhancement for large, heterogenous graphs},
+  author    = {Firth, Hugo and Missier, Paolo},
+  journal   = {Distributed and Parallel Databases},
+  volume    = {35},
+  number    = {2},
+  pages     = {85--115},
+  year      = {1998},
+  doi       = {10.1007/s10619-017-7196-y}
 }
 
-
-@inproceedings{Lyra, series={WWW ’25},
-   title={LIRA: A Learning-based Query-aware Partition Framework for Large-scale ANN Search},
-   url={http://dx.doi.org/10.1145/3696410.3714633},
-   DOI={10.1145/3696410.3714633},
-   booktitle={Proceedings of the ACM on Web Conference 2025},
-   publisher={ACM},
-   author={Zeng, Ximu and Deng, Liwei and Chen, Penghao and Chen, Xu and Su, Han and Zheng, Kai},
-   year={2025},
-   month=apr, pages={2729–2741},
-   collection={WWW ’25} }
-
-@misc{loom,
-      title={Loom: Query-aware Partitioning of Online Graphs}, 
-      author={Hugo Firth and Paolo Missier and Jack Aiston},
-      year={2017},
-      eprint={1711.06608},
-      archivePrefix={arXiv},
-      primaryClass={cs.DB},
-      url={https://arxiv.org/abs/1711.06608}, 
+% online publication without journal
+@online{loom,
+  author       = {Hugo Firth and Paolo Missier and Jack Aiston},
+  title        = {Loom: Query-aware Partitioning of Online Graphs},
+  date         = {2017},
+  urldate      = {2025-01-25},
+  doi          = {10.48550/arXiv.1711.06608},
+  annotation   = {Текст : электронный}
 }
 
 @article{song2014,
-author = {Song, Chunyao and Ge, Tingjian and Chen, Cindy and Wang, Jie},
-title = {Event pattern matching over graph streams},
-year = {2014},
-issue_date = {December 2014},
-publisher = {VLDB Endowment},
-volume = {8},
-number = {4},
-issn = {2150-8097},
-url = {https://doi.org/10.14778/2735496.2735504},
-doi = {10.14778/2735496.2735504},
-abstract = {A graph is a fundamental and general data structure underlying all data applications. Many applications today call for the management and query capabilities directly on graphs. Real time graph streams, as seen in road networks, social and communication networks, and web requests, are such applications. Event pattern matching requires the awareness of graph structures, which is different from traditional complex event processing. It also requires a focus on the dynamicity of the graph, time order constraints in patterns, and online query processing, which deviates significantly from previous work on subgraph matching as well. We study the semantics and efficient online algorithms for this important and intriguing problem, and evaluate our approaches with extensive experiments over real world datasets in four different domains.},
-journal = {Proc. VLDB Endow.},
-month = dec,
-pages = {413–424},
-numpages = {12}
+  title     = {Event pattern matching over graph streams},
+  author    = {Song, Chunyao and Ge, Tingjian and Chen, Cindy and Wang, Jie},
+  journal   = {Proc. VLDB Endow.},
+  volume    = {8},
+  number    = {4},
+  pages     = {413–424},
+  year      = {2014},
+  publisher = {VLDB Endowment},
+  doi       = {10.14778/2735496.2735504}
 }
 
-@misc{Taper,
-      title={TAPER: query-aware, partition-enhancement for large, heterogenous, graphs}, 
-      author={Hugo Firth and Paolo Missier},
-      year={2016},
-      eprint={1603.04626},
-      archivePrefix={arXiv},
-      primaryClass={cs.DB},
-      url={https://arxiv.org/abs/1603.04626}, 
+% conference
+@article{SGP,
+  author    = {Isabelle Stanton and Gabriel Kliot},
+  title     = {Streaming Graph Partitioning for Large Distributed Graphs},
+  journal   = {KDD '12: Proceedings of the 18th ACM SIGKDD international conference on Knowledge discovery and data mining},
+  publisher = {Association for Computing Machinery},
+  location  = {Beijing, China},
+  year      = {2012},
+  pages     = {1222--1230},
+  doi       = {10.1145/2339530.2339722}
 }
 
 @article{schism,
-author = {Curino C. Jones E. Zhang Y. Madden S.},
-year = {2010},
-month = {10},
-pages = {48-57},
-title = {Schism: a Workload-Driven Approach to Database Replication and Partitioning},
-journal = {PVLDB},
-doi = {10.14778/1920841.1920853}
+  title     = {Schism: a workload-driven approach to database replication and partitioning},
+  author    = {Curino, Carlo and Jones, Evan and Zhang, Yang and Madden, Sam},
+  journal   = {Proc. VLDB Endow.},
+  volume    = {3},
+  number    = {1-2},
+  pages     = {48–57},
+  year      = {2010},
+  publisher = {VLDB Endowment},
+  doi       = {10.14778/1920841.1920853}
 }
 
 @article{sword,
-author = {Quamar A., Kumar A, Deshpande A.},
-year = {2013},
-month = {03},
-pages = {430-441},
-title = {SWORD: Scalable workload-aware data placement for transactional workloads},
-journal = {ACM International Conference Proceeding Series},
-doi = {10.1145/2452376.2452427}
+  author    = {Quamar, Abdul and Kumar, K. Ashwin and Deshpande, Amol},
+  title     = {SWORD: scalable workload-aware data placement for transactional workloads},
+  journal   = {Proceedings of the 16th International Conference on Extending Database Technology},
+  publisher = {Association for Computing Machinery},
+  location  = {Genoa, Italy},
+  year      = {2013},
+  pages     = {430–441},
+  doi       = {10.1145/2452376.2452427}
 }
 
-@inproceedings{wawpart,
-author = {Priyadarshi A., Krzysztof J.},
-title = {WawPart: Workload-Aware Partitioning of Knowledge Graphs},
-year = {2021},
-isbn = {978-3-030-79456-9},
-publisher = {Springer-Verlag},
-address = {Berlin, Heidelberg},
-url = {https://doi.org/10.1007/978-3-030-79457-6_33},
-doi = {10.1007/978-3-030-79457-6_33},
-booktitle = {Advances and Trends in Artificial Intelligence. Artificial Intelligence Practices: 34th International Conference on Industrial, Engineering and Other Applications of Applied Intelligent Systems, IEA/AIE 2021, Kuala Lumpur, Malaysia, July 26–29, 2021, Proceedings, Part I},
-pages = {383–395},
-numpages = {13},
-keywords = {Knowledge graph, Graph partitioning, Query workload},
-location = {Kuala Lumpur, Malaysia}
+@article{wawpart,
+  author    = {Priyadarshi, Amitabh and Kochut, Krzysztof J.},
+  title     = {WawPart: Workload-Aware Partitioning of Knowledge Graphs},
+  journal   = {Advances and Trends in Artificial Intelligence. Artificial Intelligence Practices: 34th International Conference on Industrial, Engineering and Other Applications of Applied Intelligent Systems},
+  publisher = {Springer-Verlag},
+  location  = {Kuala Lumpur, Malaysia},
+  year      = {2021},
+  pages     = {383–395},
+  doi       = {10.1007/978-3-030-79457-6_33}
+}
+
+@article{Lyra,
+  author    = {Zeng, Ximu and Deng, Liwei and Chen, Penghao and Chen, Xu and Su, Han and Zheng, Kai},
+  title     = {LIRA: A Learning-based Query-aware Partition Framework for Large-scale ANN Search},
+  journal   = {Proceedings of the ACM on Web Conference 2025},
+  publisher = {Association for Computing Machinery},
+  location  = {Sydney NSW, Australia},
+  year      = {2025},
+  pages     = {2729–2741},
+  doi       = {10.1145/3696410.3714633}
+}
+
+@repository{ArangoDBRepo,
+  title    = {ArangoDB},
+  author   = {{ArangoDB GmbH}},
+  url      = {https://github.com/arangodb/arangodb},
+  urldate  = {2025-09-21}
+}
+
+@article{EvoCut,
+  author    = {Andersen, Reid and Peres, Yuval},
+  title     = {Finding sparse cuts locally using evolving sets},
+  journal   = {Proceedings of the Forty-First Annual ACM Symposium on Theory of Computing},
+  publisher = {Association for Computing Machinery},
+  location  = {Bethesda, MD, USA},
+  year      = {2009},
+  pages     = {235–244},
+  doi       = {10.1145/1536414.1536449}
+}
+
+@article{Fennel,
+  author    = {Tsourakakis, Charalampos and Gkantsidis, Christos and Radunovic, Bozidar and Vojnovic, Milan},
+  title     = {FENNEL: streaming graph partitioning for massive scale graphs},
+  journal   = {Proceedings of the 7th ACM International Conference on Web Search and Data Mining},
+  publisher = {Association for Computing Machinery},
+  location  = {New York, New York, USA},
+  year      = {2014},
+  pages     = {333–342},
+  doi       = {10.1145/2556195.2556213}
 }
 
 @article{AStar,
-  author={Peter E Hart,  Nils J. Nilsson, Bertram R.},
-  journal={IEEE Transactions on Systems Science and Cybernetics}, 
-  title={A Formal Basis for the Heuristic Determination of Minimum Cost Paths}, 
-  year={1968},
-  volume={4},
-  number={2},
-  pages={100-107},
-  keywords={Costs;Mathematical programming;Minimization methods;Functional programming;Automatic control;Minimax techniques;Gradient methods;Chemical technology;Automatic programming;Instruction sets},
-  doi={10.1109/TSSC.1968.300136}}
+  title     = {A Formal Basis for the Heuristic Determination of Minimum Cost Paths},
+  author    = {Hart, Peter E. and Nilsson, Nils J. and Raphael, Bertram},
+  journal   = {IEEE Transactions on Systems Science and Cybernetics},
+  volume    = {4},
+  number    = {2},
+  pages     = {100-107},
+  year      = {1968},
+  publisher = {IEEE},
+  doi       = {10.1109/TSSC.1968.300136}
+}
+
+@article{NP-problems,
+  title     = {Some simplified {NP}-complete problems},
+  author    = {Garey, Michael R. and Johnson, David S. and Stockmeyer, Larry},
+  booktitle = {Proceedings of the 6th Annual {ACM} Symposium on Theory of Computing},
+  pages     = {47--63},
+  year      = {1974},
+  doi       = {10.1145/800119.803884}
+}
+
+
+@article{VertexCut,
+  author = {Joseph E. Gonzalez and Yucheng Low and Haijie Gu and Danny Bickson and Carlos Guestrin},
+  booktitle = {OSDI},
+  number = {3},
+  title = {PowerGraph: Distributed Graph-Parallel Computation on Natural Graphs},
+  volume = {6},
+  year = {2012}
+}

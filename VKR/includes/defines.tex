@@ -36,3 +36,25 @@
 \addto{\captionsrussian}{\renewcommand{\contentsname}{Содержание}}
 
 \addbibresource{citations.bib}
+\AtBeginBibliography{
+  \renewcommand{\emph}[1]{#1}
+}
+
+\DefineBibliographyStrings{russian}{
+  urlseen = {дата обращения},
+}
+
+\DeclareBibliographyDriver{repository}{%
+  \printfield{title}%
+  \addspace[Электронный ресурс] : репозиторий%
+  \addspace/\space
+  \printnames{author}%
+  \addperiod\space
+  \textemdash\space
+  Электронные данные%
+  \addperiod\space
+  \textemdash\space
+  \space\printfield{url}%
+  \space\printurldate%
+  \finentry
+}
