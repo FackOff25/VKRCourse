@@ -3,12 +3,19 @@
 \addcontentsline{toc}{section}{Приложение Б. Копии листов графической части}
 \begin{center}
     \section*{Копии листов графической части}
-    Листов 10
+    Листов 10 \label{cnt:lists-start}
 \end{center}
 \ifdefined\ForTestVkr
 \else
-\foreach \i in {1,...,5} {
+\foreach \i in {1,...,10} {
     \newpage
-    \includepdf[angle=90, offset=10mm 0, width=\textwidth]{extras/Lists/\i.png}
+    \ifnum\i=6
+    \includepdf[offset=10mm 6mm, width=\textwidth]{extras/Lists/\i.png}
+    \else\ifnum\i=8
+    \includepdf[offset=10mm 6mm, width=\textwidth]{extras/Lists/\i.png}
+    \else
+    \includepdf[angle=90, offset=10mm 10mm, width=\textwidth]{extras/Lists/\i.png}
+    \fi
+    \fi
 }
 \fi
