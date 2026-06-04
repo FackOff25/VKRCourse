@@ -65,12 +65,16 @@
 }
 
 % Настройки заголовков
-\titleformat{\section}{\normalfont\Large\bfseries\centering}{\thesection}{1em}{}
-\titleformat{\subsection}{\normalfont\large\bfseries\centering}{\thesubsection}{1em}{}
-\titleformat{\subsubsection}{\normalfont\normalsize\bfseries}
+\titleformat{\section}{\singlespacing\normalfont\Large\bfseries\centering}{\thesection}{1em}{}
+\titleformat{\subsection}{\singlespacing\normalfont\large\bfseries\centering}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\singlespacing\normalfont\normalsize\bfseries}
   {\hspace*{1.25cm}\thesubsubsection}
   {1em}
   {}
+
+%\titlespacing*{\section}{0pt}{15pt}{1\baselineskip}
+%\titlespacing*{\subsection}{0pt}{15pt}{10pt}
+%\titlespacing*{\subsubsection}{0pt}{15pt}{10pt}
 
 % Стили списков
 \setlist[itemize]{
