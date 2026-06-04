@@ -5,7 +5,10 @@
     \section*{Копии листов графической части}
     Листов 10
 \end{center}
-\foreach \i in {1,...,2} {
+\ifdefined\ForTestVkr
+\else
+\foreach \i in {1,...,5} {
     \newpage
     \includepdf[angle=90, offset=10mm 0, width=\textwidth]{extras/Lists/\i.png}
 }
+\fi
