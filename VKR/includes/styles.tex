@@ -65,9 +65,18 @@
 }
 
 % Настройки заголовков
-\titleformat{\section}{\singlespacing\normalfont\Large\bfseries\centering}{\thesection}{1em}{}
-\titleformat{\subsection}{\singlespacing\normalfont\large\bfseries\centering}{\thesubsection}{1em}{}
-\titleformat{\subsubsection}{\singlespacing\normalfont\normalsize\bfseries}
+\titleformat{\section}  
+  {\singlespacing\normalfont\bfseries}
+  {\hspace*{1.25cm}\thesection}
+  {-1cm}
+  {\hspace*{1.25cm}\hangindent=-1.25cm\hangafter=1}
+\titleformat{\subsection}
+  {\singlespacing\normalfont\bfseries}
+  {\hspace*{1.25cm}\thesubsection}
+  {1em}
+  {\hangindent=-1.25cm\hangafter=1}
+\titleformat{\subsubsection}
+  {\singlespacing\normalfont\normalsize\bfseries}
   {\hspace*{1.25cm}\thesubsubsection}
   {1em}
   {}
