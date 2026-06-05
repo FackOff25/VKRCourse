@@ -81,9 +81,9 @@
   {1em}
   {}
 
-%\titlespacing*{\section}{0pt}{15pt}{1\baselineskip}
-%\titlespacing*{\subsection}{0pt}{15pt}{10pt}
-%\titlespacing*{\subsubsection}{0pt}{15pt}{10pt}
+\titlespacing*{\section}{0pt}{0pt}{0pt}
+\titlespacing*{\subsection}{0pt}{0pt}{0pt}
+\titlespacing*{\subsubsection}{0pt}{-10pt}{0pt}
 
 % Стили списков
 \setlist[itemize]{
@@ -127,3 +127,9 @@
   singlelinecheck=false,
   labelsep=endash
 }
+% убирает отступ после рисунков
+\setlength{\textfloatsep}{0pt}
+\setlength{\intextsep}{0pt}
+
+% для выравнивания в таблицах
+\newcolumntype{P}[1]{>{\justifying\arraybackslash}p{#1}}
