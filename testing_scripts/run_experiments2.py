@@ -162,6 +162,7 @@ def run_experiment(config_path, graph_metis, coords, queries, exp_name, v):
 
 
 def main():
+    done = ["FENNEL+SCHISM+KL_s8_5000v", "FENNEL+SCHISM+KL_s8_7500v", "FENNEL+SCHISM+KL_s8_10000v", "FENNEL+SCHISM+KL_s8_15000v", "FENNEL+SCHISM+KL_s8_20000v", ]
     results = []
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     result_file = f"{RESULTS_DIR}/results_storage8_{timestamp}.csv"
@@ -202,6 +203,9 @@ def main():
             queries = load_queries(query_file)
             exp_name = get_short_description(8, stream, req, opt, v_str)
 
+            if exp_name in done:
+                print(f"Уже делал {exp_name}")
+                continue
             result = run_experiment(config_file, metis_file, coords_file, queries, exp_name, v_str)
 
             if result:

@@ -26,11 +26,11 @@
 \foreach \i in {1,...,10} {
     \newpage
     \ifnum\i=6
-    \includepdf[pagecommand={\thispagestyle{plain}}, offset=10mm 6mm, width=\textwidth]{extras/Lists/\i.png}
+    \includepdf[pagecommand={\thispagestyle{plain}}, offset=10mm 6.5mm, width=\textwidth]{extras/Lists/\i.png}
     \else\ifnum\i=8
-    \includepdf[pagecommand={\thispagestyle{plain}}, offset=10mm 6mm, width=\textwidth]{extras/Lists/\i.png}
+    \includepdf[pagecommand={\thispagestyle{plain}}, offset=10mm 6.5mm, width=\textwidth]{extras/Lists/\i.png}
     \else
-    \includepdf[angle=90, pagecommand={\thispagestyle{plain}}, offset=10mm 10mm, width=\textwidth]{extras/Lists/\i.png}
+    \includepdf[angle=90, pagecommand={\thispagestyle{plain}}, offset=10mm 9.5mm, width=\textwidth]{extras/Lists/\i.png}
     \fi
     \fi
 }

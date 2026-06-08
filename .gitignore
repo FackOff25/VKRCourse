@@ -3,3 +3,4 @@
 *.a
 graphs_for_experiments
 configs_for_experiments
+*.log
