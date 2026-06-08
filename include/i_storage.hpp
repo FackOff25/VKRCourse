@@ -2,8 +2,10 @@
 #define VKR_ISTORAGE
 
 #include "i_bus.hpp"
+#include "local_path_result.hpp"
 
 #include <optional>
+#include <unordered_set>
 
 template <typename KeyType>
 class IStorage {
@@ -48,5 +50,8 @@ virtual typename std::map<NodeKey<KeyType>, Node<KeyType>>::const_iterator begin
 virtual typename std::map<NodeKey<KeyType>, Node<KeyType>>::const_iterator end() const = 0;
 virtual typename std::map<NodeKey<KeyType>, Node<KeyType>>::const_iterator cbegin() const = 0;
 virtual typename std::map<NodeKey<KeyType>, Node<KeyType>>::const_iterator cend() const = 0;
+
+virtual LocalPathResult<KeyType> find_local_path(const NodeKey<KeyType>& start, const NodeKey<KeyType>& goal, const std::unordered_set<NodeKey<KeyType>>& global_visited = {}) = 0;
+
 };
 #endif // VKR\_ISTORAGE

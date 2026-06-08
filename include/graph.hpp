@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
+#include <functional>
 
 template <typename KeyType> 
 class NodeKey {
@@ -44,6 +45,18 @@ friend bool operator!=(const NodeKey<KeyType>& lhs, const NodeKey<KeyType>& rhs)
     return !(lhs == rhs);
 }
 };
+
+namespace std {
+
+template<typename KeyType>
+struct hash<NodeKey<KeyType>> {
+    size_t operator()(const NodeKey<KeyType>& k) const noexcept {
+        return hash<KeyType>{}(k.key_value);
+    }
+};
+
+}
+
 
 
 class Parameter{

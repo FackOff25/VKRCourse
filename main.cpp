@@ -68,8 +68,8 @@ int main(int argc, char* argv[]) {
             }
 
             try {
-                Node<int> from_node(from_id);
-                Node<int> to_node(to_id);
+                NodeKey<int> from_node(from_id);
+                NodeKey<int> to_node(to_id);
 
                 std::string result = master.find_path(from_node, to_node);
                 std::cout << "Результат поиска пути " << from_id << " → " << to_id << ":\n";
@@ -87,4 +87,4 @@ int main(int argc, char* argv[]) {
     }
 
     return 0;
-}
+};

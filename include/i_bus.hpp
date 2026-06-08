@@ -2,7 +2,9 @@
 #define VKR_IBUS
 
 #include "graph.hpp"
+#include "local_path_result.hpp"
 #include <set>
+#include <unordered_set>
 
 template <typename KeyType> 
 class IBus {
@@ -18,8 +20,9 @@ public:
     virtual float get_streaming_euristics_change(const Node<KeyType>& node, int storage_id) = 0;
     // запрашивает у source вершины, соседствующие с target
     virtual std::set<Node<KeyType>> ask_neigbours_to_storage(int source, int target) = 0;
-    // запрашивает у source рёбра, идущие в target
     virtual std::set<Edge<KeyType>> ask_edges_to_storage(int source, int target) = 0;
+    // запрашивает у source рёбра, идущие в target
+    virtual LocalPathResult<KeyType> request_local_path(int storage_id, const NodeKey<KeyType>& start, const NodeKey<KeyType>& goal, const std::unordered_set<NodeKey<KeyType>>& global_visited = {}) = 0;
 };
 
 #endif // VKR\_IBUS

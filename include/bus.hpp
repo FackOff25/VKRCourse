@@ -147,6 +147,21 @@ std::set<Edge<KeyType>> ask_edges_to_storage(int source, int target) {
     return storages[source]->get_all_edges_to_storage(target);
 }
 
+// Добавьте в public секцию
+LocalPathResult<KeyType> request_local_path(
+    int storage_id,
+    const NodeKey<KeyType>& start,
+    const NodeKey<KeyType>& goal,
+    const std::unordered_set<NodeKey<KeyType>>& global_visited = {}) override 
+{
+    auto it = storages.find(storage_id);
+    if (it == storages.end() || it->second == nullptr) {
+        return {};
+    }
+
+    return it->second->find_local_path(start, goal, global_visited);
+}
+
 };
 
 #endif // VKR\_BUS

@@ -39,6 +39,8 @@ public:
             optimizer = std::make_unique<DummyExternalStorageOptimizer<KeyType>>();
             break;
         }
+
+        pathfinder = std::make_unique<AStarPathfinder<KeyType>>(*bus.get());
     };
 
     int create_storage(int id, StreamingType streaming_type, RequestWeightType request_weight_type) {
@@ -58,10 +60,10 @@ public:
         switch (streaming_type)
         {
         case StreamingType::FENNEL:
-            storage = std::make_unique<FennelStorage<KeyType>>(id, std::move(adjuster), cfg.fennel_params);
+            storage = std::make_unique<FennelAStarStorage<KeyType>>(id, std::move(adjuster), cfg.fennel_params);
             break;
         default:
-            storage = std::make_unique<SimpleStorage<KeyType>>(id, std::move(adjuster));
+            storage = std::make_unique<SimpleAStarStorage<KeyType>>(id, std::move(adjuster));
             break;
         }
         
@@ -167,7 +169,17 @@ public:
                 << all_pairs.size() << ") ===\n\n";
     };
 
-    std::string find_path(Node<KeyType> from, Node<KeyType> to) {
-        return "";
+    std::string find_path(NodeKey<KeyType> from, NodeKey<KeyType> to) {
+        Path<KeyType> path = pathfinder->find_path(from, to);
+
+        std::ostringstream oss;
+        for (size_t i = 0; i < path.size(); ++i) {
+            if (i != 0)
+                oss << " -> ";
+
+            oss << path[i].key_value;
+        }
+
+        return oss.str();
     };
 };
