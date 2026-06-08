@@ -34,13 +34,24 @@ class WAWAdjuster : public IWeightAdjuster<KeyType> {
 public:
     WAWAdjuster() {};
 
-    float compute_new_weight(
+float compute_new_weight(
         const std::vector<NodeKey<KeyType>>& path,
         size_t edge_index,
         float current_weight
     ) const override {
-        return current_weight;
-    };
+        if (path.empty() || edge_index >= path.size() - 1) {
+            return current_weight;
+        }
+
+        const size_t path_length = path.size() - 1;
+        if (path_length == 0) {
+            return current_weight;
+        }
+
+        float position_factor = static_cast<float>(edge_index) / path_length; // 0.0 .. ~1.0
+        float adjustment = 1.0f + 0.5f * (1.0f - position_factor);
+        return current_weight * adjustment;
+    }
 };
 
 #endif // VKR\_PATHFINDERS
