@@ -1,19 +1,16 @@
 #ifndef VKR_FENNEL
 #define VKR_FENNEL
 
-#include "storage.hpp"
+#include "base_storage.hpp"
 #include "graph.hpp"
+#include "fennel_params.hpp"
+#include <memory>
 #include <set>
 #include <algorithm>
 #include <cmath>
 
-struct FennelParameters {
-    /*k*/int storage_number;
-    /*gamma*/float balancing_number;
-};
-
 template <typename KeyType> 
-class FennelStorage : public Storage<KeyType> {
+class FennelStorage : public BaseStorage<KeyType> {
 protected:
 typedef Node<KeyType> StorageNode;
 typedef NodeKey<KeyType> Key;
@@ -46,8 +43,8 @@ float fennel_function(const Node<KeyType>& node, long total_edges) {
 }
 public:
 
-FennelStorage(int id, FennelParameters _params, std::map<Key, StorageNode> _nodes = std::map<Key, StorageNode>()) 
-    : Storage<KeyType>(id, _nodes), params(_params) {}
+FennelStorage(int id, std::unique_ptr<IWeightAdjuster<KeyType>> _weight_adjuster, FennelParameters _params, std::map<Key, StorageNode> _nodes = std::map<Key, StorageNode>()) 
+    : BaseStorage<KeyType>(id, std::move(_weight_adjuster), _nodes), params(_params) {}
 
 float get_streaming_euristics_change(const Node<KeyType>& node, long total_edges) override {
     return fennel_function(node, total_edges);
@@ -55,12 +52,12 @@ float get_streaming_euristics_change(const Node<KeyType>& node, long total_edges
 
 void get_add_announcement(Key key, int announcer_id, std::set<Edge<KeyType>> edges) override {
     ++number_of_nodes;
-    Storage<KeyType>::get_add_announcement(key, announcer_id, edges);
+    BaseStorage<KeyType>::get_add_announcement(key, announcer_id, edges);
 };
 
 void get_remove_announcement(Key key, int announcer_id) override {
     --number_of_nodes;
-    Storage<KeyType>::get_remove_announcement(key, announcer_id);
+    BaseStorage<KeyType>::get_remove_announcement(key, announcer_id);
 }
 };
 

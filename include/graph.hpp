@@ -195,6 +195,8 @@ class Node {
 private:
     NodeKey<KeyType> key;
 public:
+    double x = 0;
+    double y = 0;
     std::map<std::string, Parameter> parameters;
     std::map<NodeKey<KeyType>, Edge<KeyType>> edges;
 
@@ -213,7 +215,9 @@ public:
     Node(const Node& other) 
         : key(other.key),
         parameters(other.parameters),
-        edges(other.edges) {};
+        edges(other.edges),
+        x(other.x),
+        y(other.y) {};
 
     NodeKey<KeyType> get_key() const {
         return key;
@@ -240,6 +244,8 @@ public:
     Node& operator=(const Node& other) {
         if (this != &other) {
             key = other.key;
+            x = other.x;
+            y = other.y;
             parameters = other.parameters;
             edges = other.edges;
         }
@@ -251,7 +257,7 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Node<KeyType>& node) {
-        os << "Node(key: " << node.get_key().key_value;
+        os << "Node(key: " << node.get_key().key_value << ", x: " << node.x << ", y: " << node.y;
         
         // Выводим параметры узла
         if (!node.parameters.empty()) {

@@ -1,16 +1,31 @@
 #ifndef VKR_OPTIMIZER
 #define VKR_OPTIMIZER
 
-#include "interface_bus.hpp"
+#include "i_bus.hpp"
 
 #include <stdlib.h>
 #include <iostream>
 #include <map>
 
 template <typename KeyType>
-class KLExternalStorageOptimizer {
+class IExternalStorageOptimizer {
+    virtual void optimize(int storage1, int storage2) = 0;
+};
+
+template <typename KeyType>
+class DummyExternalStorageOptimizer : public IExternalStorageOptimizer {
+public:
+    DummyExternalStorageOptimizer() {};
+    void optimize(int storage1, int storage2) override {
+        return;
+    };
+};
+
+template <typename KeyType>
+class KLExternalStorageOptimizer : public IExternalStorageOptimizer {
 private:
 IBus<KeyType>* bus;
+int iterations_limit = 5;
 
 float calculate_gv(const Node<KeyType>& node, std::set<Edge<KeyType>> boundary_edges) const {
     NodeKey<KeyType> this_key = node.get_key();
@@ -61,8 +76,8 @@ std::map<int, std::set<Node<KeyType>>> get_negative_gvs(std::map<int, std::map<N
 };
     
 public:
-ExternalStorageOptimizer(IBus<KeyType>* _bus)
-    : bus(_bus) {}
+KLExternalStorageOptimizer(IBus<KeyType>* _bus, int _iterations_limit = 5)
+    : bus(_bus), iterations_limit(_iterations_limit) {}
 
 std::map<int, std::map<Node<KeyType>, float>> calculate_gvs(int storage1, int storage2) const {
     std::map<int, std::map<Node<KeyType>, float>> result;
@@ -88,7 +103,7 @@ std::map<int, std::map<Node<KeyType>, float>> calculate_gvs(int storage1, int st
     return result;
 };
 
-void optimize(int storage1, int storage2, int iterations_limit = 5) {
+void optimize(int storage1, int storage2) override {
     if (iterations_limit == 0) return;
 
     int iteration = 0;

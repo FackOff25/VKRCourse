@@ -1,7 +1,7 @@
 #ifndef VKR_BUS
 #define VKR_BUS
 
-#include "interface_bus.hpp"
+#include "i_bus.hpp"
 #include "i_storage.hpp"
 #include <map>
 #include <vector>

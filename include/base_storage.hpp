@@ -1,20 +1,20 @@
-#ifndef VKR_COURSE_STORAGE
-#define VKR_COURSE_STORAGE
+#ifndef VKR_BASE_STORAGE
+#define VKR_BASE_STORAGE
 
 #include "graph.hpp"
 #include "i_bus.hpp"
 #include "i_storage.hpp"
 #include "weight_adjuster.hpp"
-#include "config.hpp"
 #include <set>
 #include <optional>
 #include <vector>
 #include <algorithm>
 #include <iostream>
 #include <map>
+#include <memory>
 
 template <typename KeyType>
-class SimpleStorage : public IStorage<KeyType> {
+class BaseStorage : public IStorage<KeyType> {
 protected:
 typedef Node<KeyType> StorageNode;
 typedef NodeKey<KeyType> Key;
@@ -22,11 +22,13 @@ int storage_id;
 std::map<Key, StorageNode> nodes;
 // external\_edges[storage edge go to][external node][local node] = edge
 std::map<int, std::map<Key, std::map<Key, Edge<KeyType>>>> external_edges;
+size_t internal_edges = 0;
 IBus<KeyType> *bus = nullptr;
+std::unique_ptr<IWeightAdjuster<KeyType>> weight_adjuster;
 
 public:
-SimpleStorage(int id, IWeightAdjuster _weight_adjuster, std::map<Key, StorageNode> _nodes = std::map<Key, StorageNode>()) 
-    :storage_id(id), nodes(_nodes) {}
+BaseStorage(int id, std::unique_ptr<IWeightAdjuster<KeyType>> _weight_adjuster, std::map<Key, StorageNode> _nodes = std::map<Key, StorageNode>()) 
+    :storage_id(id), weight_adjuster(std::move(_weight_adjuster)), nodes(_nodes) {}
 
 int get_id() const override { return storage_id; };
 void connect_to_bus(IBus<KeyType>* _bus) { bus = _bus; };
@@ -87,7 +89,7 @@ void get_remove_announcement(Key key, int announcer_id) override {
 
 std::optional<std::set<Edge<KeyType>>> add_node(const StorageNode& node) override { 
     Key key = node.get_key();
-    std::cout << storage_id << " adding " << key.key_value  << std::endl;
+    std::cout << "Storage " << storage_id << ", adding " << key.key_value  << std::endl;
     typename std::map<Key, StorageNode>::iterator it = nodes.find(key);
     if (it != nodes.end()) {
         return std::nullopt;
@@ -98,18 +100,19 @@ std::optional<std::set<Edge<KeyType>>> add_node(const StorageNode& node) overrid
     for (typename std::map<Key, Edge<KeyType>>::const_iterator edge_it = node.edges.begin(); edge_it != node.edges.end(); ++edge_it) {
         const Key& neighbor_key = edge_it->first;
         const Edge<KeyType>& edge = edge_it->second;
-        std::cout << storage_id << " looks for " << neighbor_key.key_value  << std::endl;
+        //std::cout << storage_id << " looks for " << neighbor_key.key_value  << std::endl;
         // Ищем соседа в текущем хранилище
         typename std::map<Key, StorageNode>::iterator it2 = nodes.find(neighbor_key);
         if (it2 != nodes.end()) {
-            std::cout << storage_id << " node " << neighbor_key.key_value << " is inside, no asking"  << std::endl;
+            //std::cout << storage_id << " node " << neighbor_key.key_value << " is inside, no asking"  << std::endl;
             // Сосед найден в этом же хранилище - добавляем обратное ребро
             it2->second.add_edge(edge);
+            ++internal_edges;
         } else {
-            std::cout << storage_id << " node " << neighbor_key.key_value << " is outside, asking"  << std::endl;
+            //std::cout << storage_id << " node " << neighbor_key.key_value << " is outside, asking"  << std::endl;
             // Сосед не найден - спрашиваем у шины, где он находится
             int neighbours_storage_id = bus->ask_who_has(storage_id, neighbor_key);
-            std::cout << storage_id << " asked for " << neighbor_key.key_value << " answer: " << neighbours_storage_id << std::endl;
+            //std::cout << storage_id << " asked for " << neighbor_key.key_value << " answer: " << neighbours_storage_id << std::endl;
             if (neighbours_storage_id != -1) {
                 // Сохраняем внешнее ребро
                 external_edges[neighbours_storage_id][neighbor_key][key] = edge;
@@ -122,16 +125,15 @@ std::optional<std::set<Edge<KeyType>>> add_node(const StorageNode& node) overrid
     return external_edges_to_announce;
 };
 
-bool add_node_and_announce(const StorageNode& node) override {
+std::optional<std::set<Edge<KeyType>>> add_node_and_announce(const StorageNode& node) override {
     if (bus == nullptr) {
-        return false;
+        return std::optional<std::set<Edge<KeyType>>>();
     };
     std::optional<std::set<Edge<KeyType>>> external_edges = add_node(node);
-    if (!external_edges.has_value()) {
-        return false;
+    if (external_edges.has_value()) {
+        bus->announce_add(node.get_key(), storage_id, external_edges.value());
     }
-    bus->announce_add(node.get_key(), storage_id, external_edges.value());
-    return true;
+    return external_edges;
 };
 
 
@@ -147,6 +149,7 @@ bool remove_node(const Key& key) override {
         typename std::map<Key, StorageNode>::iterator it = nodes.find(other_key);
         if (it != nodes.end()) {
             it->second.remove_edge_to(key);
+            --internal_edges;
         }
     }
 
@@ -217,6 +220,9 @@ size_t size() const override {
     return nodes.size();
 }
 
+size_t internal_edges_size() const override {
+    return internal_edges;
+}
 void clear() override {
     nodes.clear();
 }
@@ -227,15 +233,43 @@ void clear() override {
 
 // Получить набор узлов, имеющих соседей в указанном хранилище (копии)
 std::set<StorageNode> get_nodes_with_neighbors_in_storage(int target_storage_id) const override {
-    // simple storage isn't supposed to do it
-    return std::set<Edge<KeyType>>;
+    std::set<StorageNode> result;
+
+    typename std::map<int, std::map<Key,  std::map<Key, Edge<KeyType>>>>::const_iterator storage_it = external_edges.find(target_storage_id);
+    if (storage_it == external_edges.end()) {
+        return result;
+    }
+
+    const std::map<Key, std::map<Key, Edge<KeyType>>>& node_edges = storage_it->second;
+    for (typename std::map<Key, std::map<Key, Edge<KeyType>>>::const_iterator node_edges_it = node_edges.begin(); node_edges_it != node_edges.end(); ++node_edges_it) {
+        const std::map<Key, Edge<KeyType>>& local_node_edges = node_edges_it->second;
+        for (typename std::map<Key, Edge<KeyType>>::const_iterator local_node_edges_it = local_node_edges.begin(); local_node_edges_it != local_node_edges.end(); ++local_node_edges_it) {
+            Key local_key = local_node_edges_it->first;
+            typename std::map<Key, StorageNode>::const_iterator node_it = nodes.find(local_key);
+            if (node_it != nodes.end()) {
+                result.insert(node_it->second);
+            }
+        }
+    }
     
     return result;
 }
 
 std::set<Edge<KeyType>> get_all_edges_to_storage(int target_storage_id) const override {
-    // simple storage isn't supposed to do it
-    return std::set<Edge<KeyType>>;
+    std::set<Edge<KeyType>> result;
+    typename std::map<int, std::map<Key, std::map<Key, Edge<KeyType>>>>::const_iterator storage_it = external_edges.find(target_storage_id);
+    if (storage_it == external_edges.end()) {
+        return std::set<Edge<KeyType>>();
+    } else {
+        const std::map<Key, std::map<Key, Edge<KeyType>>>& external_nodes_map = storage_it->second;
+        for (typename std::map<Key, std::map<Key, Edge<KeyType>>>::const_iterator node_edges_it = external_nodes_map.begin(); node_edges_it != external_nodes_map.end(); ++node_edges_it) {
+            const std::map<Key, Edge<KeyType>>& node_edge_map = node_edges_it->second;
+            for (typename std::map<Key, Edge<KeyType>>::const_iterator edges_it = node_edge_map.begin(); edges_it != node_edge_map.end(); ++edges_it) {
+                result.insert(edges_it->second);
+            }
+        }
+    }
+    return result;
 }
 
 float get_streaming_euristics_change(const Node<KeyType>& node, int total_edges) {
@@ -271,7 +305,7 @@ bool empty() const override {
     return nodes.empty();
 }
 
-friend std::ostream& operator<<(std::ostream& os, const Storage<KeyType>& storage) {
+friend std::ostream& operator<<(std::ostream& os, const BaseStorage<KeyType>& storage) {
     os << "Storage(id: " << storage.get_id();
     
     if (storage.empty()) {

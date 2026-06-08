@@ -1,6 +1,8 @@
 #ifndef VKR_ISTORAGE
 #define VKR_ISTORAGE
 
+#include "i_bus.hpp"
+
 #include <optional>
 
 template <typename KeyType>
