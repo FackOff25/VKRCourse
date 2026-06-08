@@ -76,7 +76,7 @@ private:
     }
 
 public:
-    KLExternalStorageOptimizer(IBus<KeyType>* _bus, int _iterations_limit = 4)
+    KLExternalStorageOptimizer(IBus<KeyType>* _bus, int _iterations_limit = 10)
         : bus(_bus), iterations_limit(_iterations_limit) {}
 
     std::map<int, std::map<Node<KeyType>, float>> calculate_gvs(int storage1, int storage2) const {

@@ -17,7 +17,7 @@ template<typename KeyType>
 class AStarPathfinder : public IPathfinder<KeyType> {
 private:
     IBus<KeyType>& bus;
-    std::string log_file_path = "path_edges.log";
+    std::string log_file_path = "/home/fackoff/uniCode/VKRCourse/testing_scripts/path_edges.log";
 
 public:
     AStarPathfinder(IBus<KeyType>& bus_ref) : bus(bus_ref) {}
