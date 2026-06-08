@@ -9,11 +9,12 @@
 
 template <typename KeyType>
 class IExternalStorageOptimizer {
+public:
     virtual void optimize(int storage1, int storage2) = 0;
 };
 
 template <typename KeyType>
-class DummyExternalStorageOptimizer : public IExternalStorageOptimizer {
+class DummyExternalStorageOptimizer : public IExternalStorageOptimizer<KeyType> {
 public:
     DummyExternalStorageOptimizer() {};
     void optimize(int storage1, int storage2) override {
@@ -22,7 +23,7 @@ public:
 };
 
 template <typename KeyType>
-class KLExternalStorageOptimizer : public IExternalStorageOptimizer {
+class KLExternalStorageOptimizer : public IExternalStorageOptimizer<KeyType> {
 private:
 IBus<KeyType>* bus;
 int iterations_limit = 5;

@@ -9,7 +9,8 @@ int main() {
         2,
         StreamingType::FENNEL,
         RequestWeightType::SCHISM,
-        { 2, 1.5 }
+        { 2, 1.5 },
+        OptimizerType::KL
     };
 
     Master<int> master = Master<int>(cfg);
@@ -20,6 +21,8 @@ int main() {
         "graph.metis",           // путь к METIS файлу
         "coordinates.txt"        // путь к файлу координат (опционально)
     );
+
+    master.run_optimization();
 
     master.log_storages();
 

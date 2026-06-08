@@ -35,7 +35,7 @@ public:
         case OptimizerType::KL:
             optimizer = std::make_unique<KLExternalStorageOptimizer<KeyType>>(bus.get());
             break;
-        case OptimizerType::None:
+        case OptimizerType::NONE:
             optimizer = std::make_unique<DummyExternalStorageOptimizer<KeyType>>();
             break;
         }
@@ -72,7 +72,6 @@ public:
     }
 
     void set_config(Config _cfg) { cfg = _cfg; };
-    void set_optimizer(std::unique_ptr<KLExternalStorageOptimizer<KeyType>> _optimizer) { optimizer = std::move(_optimizer); };
     size_t storage_count() const { return storages.size(); };
 
     void inititalize() {      
@@ -97,8 +96,61 @@ public:
         std::cout << bus->send_add_node(node);
     };
 
-    void run_optimization();
-    void print_statistics() const;
+    void run_optimization() {
+        if (storages.size() < 2) {
+            std::cout << "run_optimization: Недостаточно хранилищ для оптимизации\n";
+            return;
+        }
+
+        std::cout << "=== Запуск попарной оптимизации всех хранилищ ===\n";
+        std::cout << "Количество хранилищ: " << storages.size() << "\n\n";
+
+        // Собираем список активных id хранилищ
+        std::vector<int> storage_ids;
+        for (const auto& s : storages) {
+            if (s) storage_ids.push_back(s->get_id());
+        }
+
+        // Генерация всех уникальных пар в желаемом порядке
+        std::vector<std::pair<int, int>> pairs;
+
+        size_t n = storage_ids.size();
+
+        // Для 4 хранилищ: 1-2, 3-4, 1-3, 2-4, 1-4, 2-3
+        if (n == 4) {
+            pairs = {
+                {1,2}, {3,4},
+                {1,3}, {2,4},
+                {1,4}, {2,3}
+            };
+        } 
+        else {
+            // Общий алгоритм для любого количества хранилищ
+            // Сначала пары "по кругу", затем остальные
+            for (size_t i = 0; i < n; ++i) {
+                for (size_t j = i + 1; j < n; ++j) {
+                    pairs.emplace_back(storage_ids[i], storage_ids[j]);
+                }
+            }
+        }
+
+        std::cout << "Всего пар для оптимизации: " << pairs.size() << "\n";
+
+        int pair_count = 0;
+        for (const auto& [id1, id2] : pairs) {
+            pair_count++;
+            std::cout << "Оптимизация пары " << pair_count << "/" << pairs.size() 
+                    << ": " << id1 << " <-> " << id2 << std::endl;
+
+            if (optimizer) {
+                optimizer->optimize(id1, id2);
+            } else {
+                std::cerr << "  Ошибка: optimizer не инициализирован!\n";
+            }
+        }
+
+    std::cout << "=== Попарная оптимизация завершена ===\n\n";
+    };
 
     std::string find_path(Node<KeyType> from, Node<KeyType> to);
 };
