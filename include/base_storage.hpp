@@ -272,9 +272,62 @@ std::set<Edge<KeyType>> get_all_edges_to_storage(int target_storage_id) const ov
     return result;
 }
 
-float get_streaming_euristics_change(const Node<KeyType>& node, int total_edges) {
-    // simple storage isn't supposed to do it
+float get_streaming_euristics_change(const Node<KeyType>& node, long total_edges) override {
+    // base storage isn't supposed to do it
     return 0;
+}
+
+LocalPathResult<KeyType> find_local_path(const NodeKey<KeyType>& start, const NodeKey<KeyType>& goal, const std::unordered_set<NodeKey<KeyType>>& global_visited = {}) override {
+    // base storage isn't supposed to do it
+    return {};
+};
+
+void adjust_weight(std::vector<NodeKey<KeyType>> path) override {
+    if (path.size() < 2 || !weight_adjuster) {
+        return;
+    }
+
+    std::cout << "Storage " << storage_id 
+              << ": обновление весов вдоль пути длиной " << path.size() << "\n";
+
+    for (size_t i = 0; i + 1 < path.size(); ++i) {
+        const Key& u = path[i];
+        const Key& v = path[i + 1];
+
+        // Прямое ребро u -> v
+        auto node_it = nodes.find(u);
+        if (node_it != nodes.end()) {
+            auto edge_it = node_it->second.edges.find(v);
+            if (edge_it != node_it->second.edges.end()) {
+                Edge<KeyType>& edge = edge_it->second;
+                float old_weight = edge.get_weight();
+                float new_weight = weight_adjuster->compute_new_weight(path, i, old_weight);
+                
+                edge.set_weight(new_weight);
+                
+                std::cout << "  [" << i << "] " << u.key_value 
+                          << " -> " << v.key_value 
+                          << ": " << old_weight << " → " << new_weight << "\n";
+            }
+        }
+
+        // Обратное ребро v -> u (для неориентированного графа)
+        auto node_it2 = nodes.find(v);
+        if (node_it2 != nodes.end()) {
+            auto edge_it2 = node_it2->second.edges.find(u);
+            if (edge_it2 != node_it2->second.edges.end()) {
+                Edge<KeyType>& edge = edge_it2->second;
+                float old_weight = edge.get_weight();
+                float new_weight = weight_adjuster->compute_new_weight(path, i, old_weight);
+                
+                edge.set_weight(new_weight);
+                
+                std::cout << "  [" << i << "] " << v.key_value 
+                          << " -> " << u.key_value 
+                          << ": " << old_weight << " → " << new_weight << "\n";
+            }
+        }
+    }
 }
 
 typename std::map<Key, StorageNode>::iterator begin() override {

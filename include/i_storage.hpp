@@ -53,5 +53,6 @@ virtual typename std::map<NodeKey<KeyType>, Node<KeyType>>::const_iterator cend(
 
 virtual LocalPathResult<KeyType> find_local_path(const NodeKey<KeyType>& start, const NodeKey<KeyType>& goal, const std::unordered_set<NodeKey<KeyType>>& global_visited = {}) = 0;
 
+virtual void adjust_weight(std::vector<NodeKey<KeyType>> path) = 0;
 };
 #endif // VKR\_ISTORAGE

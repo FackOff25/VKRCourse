@@ -172,6 +172,8 @@ public:
     std::string find_path(NodeKey<KeyType> from, NodeKey<KeyType> to) {
         Path<KeyType> path = pathfinder->find_path(from, to);
 
+        bus->adjust_weights(path);
+
         std::ostringstream oss;
         for (size_t i = 0; i < path.size(); ++i) {
             if (i != 0)

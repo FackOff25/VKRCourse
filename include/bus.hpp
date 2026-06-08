@@ -139,7 +139,6 @@ std::set<Node<KeyType>> ask_neigbours_to_storage(int source, int target) {
     return storages[source]->get_nodes_with_neighbors_in_storage(target);
 }
 
-// запрашивает у source рёбра, идущие в target
 std::set<Edge<KeyType>> ask_edges_to_storage(int source, int target) {
     if (storages.find(source) == storages.end()) {
         return std::set<Edge<KeyType>>();
@@ -147,7 +146,6 @@ std::set<Edge<KeyType>> ask_edges_to_storage(int source, int target) {
     return storages[source]->get_all_edges_to_storage(target);
 }
 
-// Добавьте в public секцию
 LocalPathResult<KeyType> request_local_path(
     int storage_id,
     const NodeKey<KeyType>& start,
@@ -160,6 +158,12 @@ LocalPathResult<KeyType> request_local_path(
     }
 
     return it->second->find_local_path(start, goal, global_visited);
+}
+
+void adjust_weights(std::vector<NodeKey<KeyType>> path) {
+    for (typename std::map<int, IStorage<KeyType>*>::iterator it = storages.begin(); it != storages.end(); ++it) {
+        it->second->adjust_weight(path);
+    }
 }
 
 };

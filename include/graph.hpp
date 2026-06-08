@@ -103,6 +103,11 @@ public:
     float get_weight() const {
         return weight;
     }
+
+    void set_weight(float _weight) {
+        weight = _weight;
+    }
+
     bool is_directional() const {
         return directional;
     }

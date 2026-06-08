@@ -5,20 +5,28 @@
 #include "pathfinder.hpp"
 #include <vector>
 
-template <typename KeyType> 
+template <typename KeyType>
 class IWeightAdjuster {
 public:
-    virtual void put_weight(Path<KeyType>) = 0;
+    virtual float compute_new_weight(
+        const std::vector<NodeKey<KeyType>>& path,
+        size_t edge_index,
+        float current_weight
+    ) const = 0;
 };
 
-template <typename KeyType> 
+template <typename KeyType>
 class SchismAdjuster : public IWeightAdjuster<KeyType> {
 public:
     SchismAdjuster() {};
 
-    void put_weight(Path<KeyType>) override {
-        return;
-    };
+    float compute_new_weight(
+        const std::vector<NodeKey<KeyType>>& path,
+        size_t edge_index,
+        float current_weight
+    ) const override {
+        return current_weight + 1.0f;
+    }
 };
 
 template <typename KeyType> 
@@ -26,8 +34,12 @@ class WAWAdjuster : public IWeightAdjuster<KeyType> {
 public:
     WAWAdjuster() {};
 
-    void put_weight(Path<KeyType>) override {
-        return;
+    float compute_new_weight(
+        const std::vector<NodeKey<KeyType>>& path,
+        size_t edge_index,
+        float current_weight
+    ) const override {
+        return current_weight;
     };
 };
 
