@@ -6,7 +6,7 @@ BASE_DIR="configs_for_experiments"
 mkdir -p "$BASE_DIR"
 
 # Вариации параметров
-STORAGE_NUMS=(4 8 16)                    # разные количества шардов
+STORAGE_NUMS=(4 6 8 10 12 16)                    # разные количества шардов
 STREAMING_TYPES=("SIMPLE" "FENNEL")
 REQUEST_WEIGHT_TYPES=("SCHISM" "WAWPART")
 OPTIMIZER_TYPES=("NONE" "KL")
@@ -23,6 +23,9 @@ for STORAGE in "${STORAGE_NUMS[@]}"; do
     for STREAM in "${STREAMING_TYPES[@]}"; do
         for REQ in "${REQUEST_WEIGHT_TYPES[@]}"; do
             for OPT in "${OPTIMIZER_TYPES[@]}"; do
+                if [[ $OPT == "NONE" && $REQ == "WAWPART" ]]; then
+                    continue;
+                fi
                 
                 # Имя папки для комбинации
                 COMB_NAME="stream_${STREAM}_req_${REQ}_opt_${OPT}"

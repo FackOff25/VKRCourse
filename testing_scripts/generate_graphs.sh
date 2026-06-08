@@ -10,13 +10,13 @@ BASE_DIR="graphs_for_experiments"
 mkdir -p "$BASE_DIR"
 
 # Graph sizes (adjust as needed)
-VERTEX_COUNTS=(1000 5000 10000 20000 50000)
+VERTEX_COUNTS=(5000 7500 10000 15000 20000 25000 30000)
 
 # Common parameters
-AVG_DEGREE=7
+AVG_DEGREE=12
 COORD_RANGE=1000
 SEED=42
-NUM_QUERIES=5000
+NUM_QUERIES=10000
 
 # Request generator parameters
 LOCAL_RADIUS=5
