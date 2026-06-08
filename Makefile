@@ -20,6 +20,6 @@ clean:
 rebuild: clean all
 
 run: $(TARGET)
-	./$(TARGET)
+	./$(TARGET) config.cfg
 
 rebuild_and_run: rebuild run

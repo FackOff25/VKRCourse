@@ -87,14 +87,21 @@ public:
     // Добавление всех узлов в Master (удобный метод)
     static void load_to_master(Master<KeyType>& master, 
                              const std::string& metis_file, 
-                             const std::string& coords_file = "") 
+                             const std::string& coords_file = "",
+                            const int optimize_every = 0) 
     {
         auto nodes_map = load_graph(metis_file, coords_file);
 
         std::cout << "Начало потоковой загрузки " << nodes_map.size() << " вершин...\n";
 
+        int i = 0;
         for (const auto& [key, node] : nodes_map) {
             master.add_node(node);
+            ++i;
+            if (i == optimize_every){
+                i = 0;
+                master.run_optimization();
+            }
         }
 
         std::cout << "Загрузка графа завершена!\n";
