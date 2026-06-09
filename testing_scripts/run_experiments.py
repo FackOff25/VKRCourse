@@ -107,7 +107,7 @@ def run_experiment(config_path: str, graph_metis: str, coords: str, queries: lis
                 commands.append(f"Отправлено i команд\n")
             #time.sleep(0.003)  # уменьшил задержку
 
-        process.wait(timeout=900)
+        #process.wait(timeout=900)
 
         # Обработка лога path_edges.log
         if os.path.exists(LOG_FILE):
@@ -158,7 +158,7 @@ def main():
             opt = parts[5]
             exp_name = get_short_description(storage_num, stream, req, opt)
 
-            graph_dirs = sorted(glob.glob(f"{GRAPHS_BASE}/graph_*v"), reverse=True)
+            graph_dirs = sorted(glob.glob(f"{GRAPHS_BASE}/graph_10000v"), reverse=True)
             if not graph_dirs:
                 continue
 
