@@ -12367,7 +12367,7 @@
     </mxGraphModel>
   </diagram>
   <diagram name="Стр 10. - Схема алгоритма тестирования" id="PN_4k-ByshrrKlKTf7_9">
-    <mxGraphModel dx="5903" dy="3437" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="3443" dy="2005" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <UserObject label="" Designer="Козлов В.М." Checker="Попов А.Ю." Manufacturer="МГТУ им. Н.Э. Баумана&lt;div&gt;каф. ИУ6&lt;/div&gt;" id="fBih9iPnMbZs485pSmJd-0">
           <mxCell />
@@ -12769,8 +12769,8 @@
         <mxCell id="khK0mPMSeR6GoIM6ROWK-1" parent="fBih9iPnMbZs485pSmJd-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=60;fontFamily=ГОСТ тип А;fontStyle=1" value="Эксперимент 2: Сравнение эффективности алгоритмов при разном размере графа" vertex="1">
           <mxGeometry height="60" width="1532.94" x="1733.45" y="140" as="geometry" />
         </mxCell>
-        <mxCell id="E4Y7j7cqmL3V9YgPxS3p-0" parent="fBih9iPnMbZs485pSmJd-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=top;rounded=0;fontSize=52;fontFamily=ГОСТ тип А;" value="&lt;div&gt;Выводы:&lt;/div&gt;&amp;nbsp; &amp;nbsp;- комбинации с Fennel хуже работают на малом количестве шардов, но лучше на большом. При этом чистый Fennel работает значительно быстрее;&lt;div&gt;&amp;nbsp; &amp;nbsp;- на 4 шардах распределение не играет особой роли;&lt;div&gt;&amp;nbsp; &amp;nbsp;- на большом кол-ве шардов KL не сильно улучшает случайное распределение;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp;- при 4 шардах распределение не играет особой роли.&lt;/div&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="560" width="1572.94" x="110" y="1658.11" as="geometry" />
+        <mxCell id="E4Y7j7cqmL3V9YgPxS3p-0" parent="fBih9iPnMbZs485pSmJd-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=top;rounded=0;fontSize=52;fontFamily=ГОСТ тип А;" value="&lt;div&gt;Выводы:&lt;/div&gt;&amp;nbsp; &amp;nbsp;- комбинации с Fennel хуже работают на малом количестве шардов, но лучше на большом. При этом чистый Fennel работает значительно быстрее;&lt;div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp;- на большом кол-ве шардов KL не сильно улучшает случайное распределение;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp;- при 4 шардах распределение не играет особой роли.&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="560" width="1572.94" x="100.99" y="1665.35" as="geometry" />
         </mxCell>
         <mxCell id="E4Y7j7cqmL3V9YgPxS3p-1" parent="fBih9iPnMbZs485pSmJd-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=top;rounded=0;fontSize=52;fontFamily=ГОСТ тип А;" value="&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Выводы:&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp;-&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;комбинации с&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Fennel алгоритмы показывают себя лучше;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp;- WAWPart в среднем показывает себя лучше Schism со случайным распределением, но хуже с Fennel;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp;- есть тенденция я улучшения показателей с ростом графа;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="361.89" width="1470" x="1770" y="1650" as="geometry" />
