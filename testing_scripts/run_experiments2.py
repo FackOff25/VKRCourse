@@ -130,7 +130,7 @@ def run_experiment(config_path, graph_metis, coords, queries, exp_name, v):
                 commands.append(f"Отправлено i команд\n")
             #time.sleep(0.003)  # уменьшил задержку
 
-        process.wait(timeout=900)
+        #process.wait(timeout=900)
 
         # Обработка лога path_edges.log
         if os.path.exists(LOG_FILE):

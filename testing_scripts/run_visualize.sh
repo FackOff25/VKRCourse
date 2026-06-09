@@ -1,15 +1,19 @@
 python3 visualize.py \
     --files \
         files/2/none.txt \
+        files/2/kl_schism.txt \
+        files/2/kl_wawpart.txt \
         files/2/Fennel.txt \
-        files/2/kl.txt \
-        files/2/Fennel_kl.txt \
+        files/2/Fennel_kl_schism.txt \
+        files/2/Fennel_kl_wawpart.txt\
     --labels \
-        "No optimization" \
+        "Cлучайное распределение" \
+        "KL+Schism" \
+        "KL+WAWpart" \
         "Fennel" \
-        "KL" \
-        "Fennel + KL" \
-    --title "Межшардовые переходы при разном размере графа (4 хранилища)" \
-    --xlabel "Кол-во вершие" \
-    --ylabel "Межшардовые переходы" \
+        "Fennel+KL+Schism" \
+        "Fennel+KL+WAWpart" \
+    --title "Доля межшардовых переходов с различным размером графа" \
+    --xlabel "Количество вершин графа" \
+    --ylabel "Доля межшардовых переходов" \
     --output files/2/result_plot.png

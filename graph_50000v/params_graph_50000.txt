@@ -1,8 +1,0 @@
-=== GRAPH GENERATION PARAMETERS ===
-Vertices (N): 50000
-Average Degree: 7
-Coord Range: 1000
-Seed: 42
-Graph File: graph_50000.metis
-Coords File: coords_50000.txt
-Generated: Mon 08 Jun 2026 09:17:56 AM MSK
