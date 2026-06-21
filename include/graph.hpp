@@ -80,9 +80,9 @@ private:
     NodeKey<KeyType> from;
     NodeKey<KeyType> to;
 public:
-    Edge() : weight(1), directional(false) {}
+    Edge() : weight(0.01), directional(false) {}
     Edge(const NodeKey<KeyType>& from_node, const NodeKey<KeyType>& to_node) 
-        : weight(1), directional(false), from(from_node), to(to_node) {}
+        : weight(0.01), directional(false), from(from_node), to(to_node) {}
     
     Edge(const NodeKey<KeyType>& from_node, const NodeKey<KeyType>& to_node, int edge_weight) 
         : weight(edge_weight), directional(false), from(from_node), to(to_node) {}

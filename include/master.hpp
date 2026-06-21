@@ -104,69 +104,17 @@ public:
             return;
         }
 
-        std::vector<int> ids;
-        for (const auto& s : storages) {
-            if (s) ids.push_back(s->get_id());
-        }
-
-        size_t n = ids.size();
-        std::vector<std::pair<int, int>> all_pairs;
-
-        // Генерация расписания по кругам (round-robin)
-        if (n % 2 == 1) {
-            // Если нечётное количество — добавляем фиктивное хранилище
-            ids.push_back(-1);
-            n++;
-        }
-
-        int rounds = n - 1;  // количество кругов
-
-        std::cout << "Количество кругов: " << rounds << "\n";
-
-        for (int round = 0; round < rounds; ++round) {
-            std::cout << "\n--- Круг " << (round + 1) << " ---\n";
-
-            std::vector<std::pair<int, int>> round_pairs;
-
-            // Фиксируем первую пару (1-й с последним в текущем круге)
-            for (size_t i = 0; i < n / 2; ++i) {
-                int a = ids[i];
-                int b = ids[n - 1 - i];
-
-                if (a != -1 && b != -1 && a < b) {  // исключаем фиктивное и дубли
-                    round_pairs.emplace_back(a, b);
-                    std::cout << "  " << a << " <-> " << b << std::endl;
-                }
-            }
-
-            // Добавляем пары текущего круга в общее расписание
-            all_pairs.insert(all_pairs.end(), round_pairs.begin(), round_pairs.end());
-
-            // Поворот для следующего круга (классический round-robin)
-            if (n > 2) {
-                int last = ids.back();
-                ids.erase(ids.begin() + 1);
-                ids.insert(ids.begin() + ids.size() - 1, last);  // ротация
-            }
-        }
+        int rounds = storages.size() -1; // / 2 + (storages.size() % 2);
 
         std::cout << "\n=== Выполнение оптимизации по парам ===\n";
-
-        int pair_count = 0;
-        for (const auto& [id1, id2] : all_pairs) {
-            pair_count++;
-            std::cout << "Оптимизация " << pair_count << "/" << all_pairs.size() 
-                    << ": " << id1 << " <-> " << id2 << std::endl;
-
-            if (optimizer) {
-                optimizer->optimize(id1, id2);
-            } else {
-                std::cerr << "  Предупреждение: optimizer не установлен!\n";
+        for (int round = 0; round < rounds; ++round) {
+            std::cout << "\n--- Круг " << (round + 1) << " ---\n";
+            for (int leader = 0; leader < storages.size() - 1; ++leader) {
+                int other = (leader + round + 1) % storages.size();
+                 std::cout << "Оптимизация " << ": " << leader << " <-> " << other << std::endl;
+                optimizer->optimize(storages[leader]->get_id(), storages[other]->get_id());
             }
         }
-
-        std::cout << "=== Круговая оптимизация завершена (всего пар: " 
-                << all_pairs.size() << ") ===\n\n";
     };
 
     std::string find_path(NodeKey<KeyType> from, NodeKey<KeyType> to) {

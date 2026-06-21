@@ -55,7 +55,7 @@ private:
             }
         }
         
-        return internal_edges_weight - external_edges_weight;
+        return external_edges_weight - internal_edges_weight;
     }
 
     // Вспомогательная функция для вычисления gain от обмена двух вершин
@@ -109,7 +109,7 @@ public:
         bool improved = true;
 
         while (outer_iteration < iterations_limit && improved) {
-            //std::cout << "KL outer iteration " << outer_iteration << " (storages " << storage1 << " <-> " << storage2 << ")\n";
+            std::cout << "KL outer iteration " << outer_iteration << " (storages " << storage1 << " <-> " << storage2 << ")\n";
             improved = false;
 
             std::set<NodeKey<KeyType>> locked;
@@ -121,56 +121,69 @@ public:
             // Внутренний проход KL (последовательность обменов)
             for (int step = 0; step < 20; ++step) {  // ограничение на длину прохода
                 std::map<int, std::map<Node<KeyType>, float>> gvs = calculate_gvs(storage1, storage2);
-                
-                std::set<Node<KeyType>> neg1, neg2;
+                std::cout << "gvs size: " << gvs[storage1].size() << ", and " << gvs[storage2].size() << std::endl;
+                std::vector<std::pair<Node<KeyType>,float>> neg1, neg2;
                 typename std::map<Node<KeyType>, float>::const_iterator git;
                 for (git = gvs[storage1].begin(); git != gvs[storage1].end(); ++git) {
-                    if (git->second < 0 && locked.find(git->first.get_key()) == locked.end()) {
-                        neg1.insert(git->first);
+                    if (git->second > 0 && locked.find(git->first.get_key()) == locked.end()) {
+                        neg1.push_back(std::pair<Node<KeyType>,float>(git->first, git->second));
                     }
                 }
                 for (git = gvs[storage2].begin(); git != gvs[storage2].end(); ++git) {
-                    if (git->second < 0 && locked.find(git->first.get_key()) == locked.end()) {
-                        neg2.insert(git->first);
+                    if (git->second > 0 && locked.find(git->first.get_key()) == locked.end()) {
+                        neg2.push_back(std::pair<Node<KeyType>,float>(git->first, git->second));
                     }
                 }
 
-                if (neg1.empty() || neg2.empty()) break;
+                if (neg1.empty() || neg2.empty()) {
+                    std::cout << "No swappable neighbours (" << neg1.size() << ", " << neg2.size() << "), stop" << std::endl;
+                    break;
+                }
+
+                std::sort(neg1.begin(), neg1.end(), [](const auto& a, const auto& b) {
+                    return a.second > b.second;
+                });
+
+                std::sort(neg2.begin(), neg2.end(), [](const auto& a, const auto& b) {
+                    return a.second > b.second;
+                });
 
                 // Ищем лучшую пару для обмена в этом шаге
-                float best_step_gain = -std::numeric_limits<float>::max();
-                NodeKey<KeyType> best_a, best_b;
+                float best_step_gain = std::numeric_limits<float>::min();
+                Node<KeyType> best_a, best_b;
 
-                typename std::set<Node<KeyType>>::const_iterator ita, itb;
+                typename std::vector<std::pair<Node<KeyType>,float>>::const_iterator ita, itb;
                 for (ita = neg1.begin(); ita != neg1.end(); ++ita) {
                     for (itb = neg2.begin(); itb != neg2.end(); ++itb) {
-                        const Node<KeyType>& na = *ita;
-                        const Node<KeyType>& nb = *itb;
-                        float gain = calculate_swap_gain(na, nb,
-                            bus->ask_edges_to_storage(storage1, storage2),
-                            bus->ask_edges_to_storage(storage2, storage1));
+                        float cut_weight = 0.0f;
+                        typename std::map<NodeKey<KeyType>, Edge<KeyType>>::const_iterator edge_it = ita->first.edges.find(itb->first.get_key());
+                        if (edge_it != ita->first.edges.end()) {
+                            cut_weight = edge_it->second.get_weight();
+                        }
+                        float gain = ita->second + itb->second - 2 * cut_weight;
 
                         if (gain > best_step_gain) {
                             best_step_gain = gain;
-                            best_a = na.get_key();
-                            best_b = nb.get_key();
+                            best_a = ita->first;
+                            best_b = itb->first;
                         }
                     }
                 }
 
-                if (best_step_gain <= -999.0f) break; // ничего хорошего
+                if (best_step_gain == std::numeric_limits<float>::min()) {
+                    std::cout << "No good swap" << std::endl;
+                    break;
+                } // ничего хорошего
 
                 // Выполняем временный swap (для расчёта следующего состояния)
-                Node<KeyType> node_a = bus->request_node(best_a);
-                Node<KeyType> node_b = bus->request_node(best_b);
-                bus->send_remove_node(best_a);
-                bus->send_remove_node(best_b);
-                bus->send_add_node(node_b, storage1);
-                bus->send_add_node(node_a, storage2);
+                bus->send_remove_node(best_a.get_key());
+                bus->send_remove_node(best_b.get_key());
+                bus->send_add_node(best_b.get_key(), storage1);
+                bus->send_add_node(best_a.get_key(), storage2);
 
-                swap_sequence.push_back(std::make_pair(best_a, best_b));
-                locked.insert(best_a);
-                locked.insert(best_b);
+                swap_sequence.push_back(std::make_pair(best_a.get_key(), best_b.get_key()));
+                locked.insert(best_a.get_key());
+                locked.insert(best_b.get_key());
 
                 float current_cumulative = (cumulative_gains.empty() ? 0.0f : cumulative_gains.back()) + best_step_gain;
                 cumulative_gains.push_back(current_cumulative);
@@ -195,7 +208,7 @@ public:
             outer_iteration++;
         }
 
-        //std::cout << "KL optimization finished after " << outer_iteration << " outer iterations\n";
+        std::cout << "KL optimization finished after " << outer_iteration << " outer iterations\n";
     };
 };
 
