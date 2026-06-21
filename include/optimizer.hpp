@@ -109,7 +109,7 @@ public:
         bool improved = true;
 
         while (outer_iteration < iterations_limit && improved) {
-            std::cout << "KL outer iteration " << outer_iteration << " (storages " << storage1 << " <-> " << storage2 << ")\n";
+            //std::cout << "KL outer iteration " << outer_iteration << " (storages " << storage1 << " <-> " << storage2 << ")\n";
             improved = false;
 
             std::set<NodeKey<KeyType>> locked;
@@ -189,13 +189,13 @@ public:
                 // Здесь можно откатить лишние swaps, но для простоты мы уже применили все, 
                 // а в реальной реализации лучше делать rollback. Пока оставляем как есть (применяем лучший префикс).
             } else {
-                std::cout << "  No positive gain found, stopping inner pass\n";
+                //std::cout << "  No positive gain found, stopping inner pass\n";
             }
 
             outer_iteration++;
         }
 
-        std::cout << "KL optimization finished after " << outer_iteration << " outer iterations\n";
+        //std::cout << "KL optimization finished after " << outer_iteration << " outer iterations\n";
     };
 };
 
