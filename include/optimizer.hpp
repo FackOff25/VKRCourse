@@ -119,9 +119,9 @@ public:
             int best_prefix_length = 0;
 
             // Внутренний проход KL (последовательность обменов)
-            for (int step = 0; step < 20; ++step) {  // ограничение на длину прохода
-                std::map<int, std::map<Node<KeyType>, float>> gvs = calculate_gvs(storage1, storage2);
-                std::cout << "gvs size: " << gvs[storage1].size() << ", and " << gvs[storage2].size() << std::endl;
+            std::map<int, std::map<Node<KeyType>, float>> gvs = calculate_gvs(storage1, storage2);
+
+            for (int step = 0; step < 20; ++step) {
                 std::vector<std::pair<Node<KeyType>,float>> neg1, neg2;
                 typename std::map<Node<KeyType>, float>::const_iterator git;
                 for (git = gvs[storage1].begin(); git != gvs[storage1].end(); ++git) {
@@ -191,6 +191,40 @@ public:
                 if (current_cumulative > max_gain) {
                     max_gain = current_cumulative;
                     best_prefix_length = swap_sequence.size();
+                }
+
+                std::set<Edge<KeyType>> boundary_edges1 = bus->ask_edges_to_storage(storage1, storage2);
+                std::set<Edge<KeyType>> boundary_edges2 = bus->ask_edges_to_storage(storage2, storage1);
+
+                std::set<NodeKey<KeyType>> affected;
+
+                affected.insert(best_a.get_key());
+                affected.insert(best_b.get_key());
+
+                typename std::map<NodeKey<KeyType>, Edge<KeyType>>::const_iterator eit;
+
+                for (eit = best_a.edges.begin(); eit != best_a.edges.end(); ++eit)
+                    affected.insert(eit->first);
+
+                for (eit = best_b.edges.begin(); eit != best_b.edges.end(); ++eit)
+                    affected.insert(eit->first);
+                
+                for (auto& p : neg1) {
+                    if (affected.find(p.first.get_key()) != affected.end()) {
+                        float gv = calculate_gv(p.first, boundary_edges1);
+
+                        p.second = gv;
+                        gvs[storage1][p.first] = gv;
+                    }
+                }
+
+                for (auto& p : neg2) {
+                    if (affected.find(p.first.get_key()) != affected.end()) {
+                        float gv = calculate_gv(p.first, boundary_edges2);
+
+                        p.second = gv;
+                        gvs[storage2][p.first] = gv;
+                    }
                 }
             }
 
