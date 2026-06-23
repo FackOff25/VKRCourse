@@ -89,7 +89,7 @@ void get_remove_announcement(Key key, int announcer_id) override {
 
 std::optional<std::set<Edge<KeyType>>> add_node(const StorageNode& node) override { 
     Key key = node.get_key();
-    std::cout << "Storage " << storage_id << ", adding " << key.key_value  << std::endl;
+    //std::cout << "Storage " << storage_id << ", adding " << key.key_value  << std::endl;
     typename std::map<Key, StorageNode>::iterator it = nodes.find(key);
     if (it != nodes.end()) {
         return std::nullopt;
@@ -223,6 +223,17 @@ size_t size() const override {
 size_t internal_edges_size() const override {
     return internal_edges;
 }
+
+size_t external_edges_size() const override {
+    size_t count = 0;
+    for (const auto& storage_pair : external_edges) {
+        for (const auto& node_pair : storage_pair.second) {
+            count += node_pair.second.size();
+        }
+    }
+    return count;
+}
+
 void clear() override {
     nodes.clear();
 }

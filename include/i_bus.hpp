@@ -24,6 +24,7 @@ public:
     // запрашивает у source рёбра, идущие в target
     virtual LocalPathResult<KeyType> request_local_path(int storage_id, const NodeKey<KeyType>& start, const NodeKey<KeyType>& goal, const std::unordered_set<NodeKey<KeyType>>& global_visited = {}) = 0;
     virtual void adjust_weights(std::vector<NodeKey<KeyType>> path) = 0;
+    virtual double get_inter_storage_cut_percent() = 0;
 };
 
 #endif // VKR\_IBUS

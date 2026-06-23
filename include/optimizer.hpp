@@ -9,6 +9,8 @@
 #include <set>
 #include <vector>
 #include <limits>
+#include <fstream>
+#include <iomanip>
 
 template <typename KeyType>
 class IExternalStorageOptimizer {
@@ -18,10 +20,21 @@ public:
 
 template <typename KeyType>
 class DummyExternalStorageOptimizer : public IExternalStorageOptimizer<KeyType> {
+private:
+    IBus<KeyType>* bus;
 public:
-    DummyExternalStorageOptimizer() {};
+    DummyExternalStorageOptimizer(IBus<KeyType>* _bus)
+        : bus(_bus) {}
     void optimize(int storage1, int storage2) override {
-        return;
+        double cut = bus->get_inter_storage_cut_percent();
+        std::ofstream log_file("kl_experiment.log", std::ios::app);
+        if (log_file.is_open()) {
+            log_file << "KL " << storage1 << "-" << storage2 
+                    << " iterations=0 initial_cut=" << cut 
+                    << " final_cut=" << cut << " delta=0\n";
+        }
+        std::cout << "Dummy KL [" << storage1 << "<->" << storage2 
+                << "] cut = " << cut << "%\n";
     };
 };
 
@@ -29,7 +42,7 @@ template <typename KeyType>
 class KLExternalStorageOptimizer : public IExternalStorageOptimizer<KeyType> {
 private:
     IBus<KeyType>* bus;
-    int iterations_limit = 5;
+    int iterations_limit = 10;
 
     float calculate_gv(const Node<KeyType>& node, std::set<Edge<KeyType>> boundary_edges) const {
         NodeKey<KeyType> this_key = node.get_key();
@@ -105,11 +118,18 @@ public:
     void optimize(int storage1, int storage2) override {
         if (iterations_limit == 0) return;
 
+        // === ЛОГИРОВАНИЕ НАЧАЛЬНОГО РАЗРЕЗА ===
+        double initial_cut = bus->get_inter_storage_cut_percent();
+        double clean_initial_cut = initial_cut;
+        std::cout << "KL [" << storage1 << "<->" << storage2 
+                  << "] Initial cut: " << initial_cut << "%\n";
+
         int outer_iteration = 0;
         bool improved = true;
 
         while (outer_iteration < iterations_limit && improved) {
-            std::cout << "KL outer iteration " << outer_iteration << " (storages " << storage1 << " <-> " << storage2 << ")\n";
+            std::cout << "KL outer iteration " << outer_iteration 
+                      << " (storages " << storage1 << " <-> " << storage2 << ")\n";
             improved = false;
 
             std::set<NodeKey<KeyType>> locked;
@@ -118,20 +138,21 @@ public:
             float max_gain = 0.0f;
             int best_prefix_length = 0;
 
-            // Внутренний проход KL (последовательность обменов)
+            // Внутренний проход KL
             std::map<int, std::map<Node<KeyType>, float>> gvs = calculate_gvs(storage1, storage2);
 
-            for (int step = 0; step < 20; ++step) {
+            for (int step = 0; step < 40; ++step) {
                 std::vector<std::pair<Node<KeyType>,float>> neg1, neg2;
                 typename std::map<Node<KeyType>, float>::const_iterator git;
+
                 for (git = gvs[storage1].begin(); git != gvs[storage1].end(); ++git) {
-                    if (git->second > 0 && locked.find(git->first.get_key()) == locked.end()) {
-                        neg1.push_back(std::pair<Node<KeyType>,float>(git->first, git->second));
+                    if (locked.find(git->first.get_key()) == locked.end()) {
+                        neg1.push_back({git->first, git->second});
                     }
                 }
                 for (git = gvs[storage2].begin(); git != gvs[storage2].end(); ++git) {
-                    if (git->second > 0 && locked.find(git->first.get_key()) == locked.end()) {
-                        neg2.push_back(std::pair<Node<KeyType>,float>(git->first, git->second));
+                    if (locked.find(git->first.get_key()) == locked.end()) {
+                        neg2.push_back({git->first, git->second});
                     }
                 }
 
@@ -140,32 +161,25 @@ public:
                     break;
                 }
 
-                std::sort(neg1.begin(), neg1.end(), [](const auto& a, const auto& b) {
-                    return a.second > b.second;
-                });
+                std::sort(neg1.begin(), neg1.end(), [](const auto& a, const auto& b){ return a.second > b.second; });
+                std::sort(neg2.begin(), neg2.end(), [](const auto& a, const auto& b){ return a.second > b.second; });
 
-                std::sort(neg2.begin(), neg2.end(), [](const auto& a, const auto& b) {
-                    return a.second > b.second;
-                });
-
-                // Ищем лучшую пару для обмена в этом шаге
                 float best_step_gain = std::numeric_limits<float>::min();
                 Node<KeyType> best_a, best_b;
 
-                typename std::vector<std::pair<Node<KeyType>,float>>::const_iterator ita, itb;
-                for (ita = neg1.begin(); ita != neg1.end(); ++ita) {
-                    for (itb = neg2.begin(); itb != neg2.end(); ++itb) {
+                for (const auto& pa : neg1) {
+                    for (const auto& pb : neg2) {
                         float cut_weight = 0.0f;
-                        typename std::map<NodeKey<KeyType>, Edge<KeyType>>::const_iterator edge_it = ita->first.edges.find(itb->first.get_key());
-                        if (edge_it != ita->first.edges.end()) {
+                        auto edge_it = pa.first.edges.find(pb.first.get_key());
+                        if (edge_it != pa.first.edges.end()) {
                             cut_weight = edge_it->second.get_weight();
                         }
-                        float gain = ita->second + itb->second - 2 * cut_weight;
+                        float gain = pa.second + pb.second - 2.0f * cut_weight;
 
                         if (gain > best_step_gain) {
                             best_step_gain = gain;
-                            best_a = ita->first;
-                            best_b = itb->first;
+                            best_a = pa.first;
+                            best_b = pb.first;
                         }
                     }
                 }
@@ -173,15 +187,15 @@ public:
                 if (best_step_gain == std::numeric_limits<float>::min()) {
                     std::cout << "No good swap" << std::endl;
                     break;
-                } // ничего хорошего
+                }
 
-                // Выполняем временный swap (для расчёта следующего состояния)
+                // Временный своп
                 bus->send_remove_node(best_a.get_key());
                 bus->send_remove_node(best_b.get_key());
                 bus->send_add_node(best_b.get_key(), storage1);
                 bus->send_add_node(best_a.get_key(), storage2);
 
-                swap_sequence.push_back(std::make_pair(best_a.get_key(), best_b.get_key()));
+                swap_sequence.push_back({best_a.get_key(), best_b.get_key()});
                 locked.insert(best_a.get_key());
                 locked.insert(best_b.get_key());
 
@@ -193,57 +207,78 @@ public:
                     best_prefix_length = swap_sequence.size();
                 }
 
+                // Обновление gvs
                 std::set<Edge<KeyType>> boundary_edges1 = bus->ask_edges_to_storage(storage1, storage2);
                 std::set<Edge<KeyType>> boundary_edges2 = bus->ask_edges_to_storage(storage2, storage1);
 
-                std::set<NodeKey<KeyType>> affected;
+                std::set<NodeKey<KeyType>> affected = {best_a.get_key(), best_b.get_key()};
+                for (const auto& e : best_a.edges) affected.insert(e.first);
+                for (const auto& e : best_b.edges) affected.insert(e.first);
 
-                affected.insert(best_a.get_key());
-                affected.insert(best_b.get_key());
-
-                typename std::map<NodeKey<KeyType>, Edge<KeyType>>::const_iterator eit;
-
-                for (eit = best_a.edges.begin(); eit != best_a.edges.end(); ++eit)
-                    affected.insert(eit->first);
-
-                for (eit = best_b.edges.begin(); eit != best_b.edges.end(); ++eit)
-                    affected.insert(eit->first);
-                
                 for (auto& p : neg1) {
-                    if (affected.find(p.first.get_key()) != affected.end()) {
+                    if (affected.count(p.first.get_key())) {
                         float gv = calculate_gv(p.first, boundary_edges1);
-
                         p.second = gv;
                         gvs[storage1][p.first] = gv;
                     }
                 }
-
                 for (auto& p : neg2) {
-                    if (affected.find(p.first.get_key()) != affected.end()) {
+                    if (affected.count(p.first.get_key())) {
                         float gv = calculate_gv(p.first, boundary_edges2);
-
                         p.second = gv;
                         gvs[storage2][p.first] = gv;
                     }
                 }
             }
 
-            // Применяем только лучший префикс, если он даёт положительный выигрыш
+            // Применяем только лучший префикс
             if (max_gain > 0.0f && best_prefix_length > 0) {
                 std::cout << "  Applying best prefix of " << best_prefix_length 
                           << " swaps with gain " << max_gain << "\n";
                 improved = true;
-                // Здесь можно откатить лишние swaps, но для простоты мы уже применили все, 
-                // а в реальной реализации лучше делать rollback. Пока оставляем как есть (применяем лучший префикс).
-            } else {
-                //std::cout << "  No positive gain found, stopping inner pass\n";
+
+                // Откат всех свопов
+                for (int i = swap_sequence.size() - 1; i >= 0; --i) {
+                    auto [a, b] = swap_sequence[i];
+                    bus->send_remove_node(a);
+                    bus->send_remove_node(b);
+                    bus->send_add_node(a, storage1);
+                    bus->send_add_node(b, storage2);
+                }
+
+                // Применяем только лучший префикс
+                for (int i = 0; i < best_prefix_length; ++i) {
+                    auto [a, b] = swap_sequence[i];
+                    bus->send_remove_node(a);
+                    bus->send_remove_node(b);
+                    bus->send_add_node(b, storage1);
+                    bus->send_add_node(a, storage2);
+                }
             }
 
             outer_iteration++;
         }
 
+        // === ЛОГИРОВАНИЕ ФИНАЛЬНОГО РАЗРЕЗА ===
+        double final_cut = bus->get_inter_storage_cut_percent();
+        std::cout << "KL [" << storage1 << "<->" << storage2 
+                  << "] Final cut: " << final_cut << "% (change: " 
+                  << (final_cut - clean_initial_cut) << "%)\n";
+
+        // Логирование в файл
+        std::ofstream log_file("kl_experiment.log", std::ios::app);
+        if (log_file.is_open()) {
+            log_file << "KL " << storage1 << "-" << storage2 
+                     << " iterations=" << outer_iteration 
+                     << " initial_cut=" << clean_initial_cut 
+                     << " final_cut=" << final_cut 
+                     << " delta=" << (final_cut - clean_initial_cut)
+                     << std::endl;
+        }
+
         std::cout << "KL optimization finished after " << outer_iteration << " outer iterations\n";
     };
+    
 };
 
 #endif // VKR_OPTIMIZER

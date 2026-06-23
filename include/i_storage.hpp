@@ -28,6 +28,7 @@ virtual const std::map<NodeKey<KeyType>, Node<KeyType>>& get_all_nodes() const =
 
 virtual size_t size() const = 0;
 virtual size_t internal_edges_size() const = 0;
+virtual size_t external_edges_size() const = 0;
 virtual void clear() = 0;
 virtual bool empty() const = 0;
 

@@ -16,9 +16,7 @@ protected:
 typedef Node<KeyType> StorageNode;
 typedef NodeKey<KeyType> Key;
 FennelParameters params;
-//float number_of_edges;
-int number_of_nodes;
-float streaming_euristics = 0;
+int number_of_nodes = 0;
 
 float get_p_parameter(int number_of_nodes, long number_of_edges){
     if (number_of_nodes == 0) {
@@ -52,13 +50,13 @@ float get_streaming_euristics_change(const Node<KeyType>& node, long total_edges
 }
 
 void get_add_announcement(Key key, int announcer_id, std::set<Edge<KeyType>> edges) override {
-    ++number_of_nodes;
     BaseStorage<KeyType>::get_add_announcement(key, announcer_id, edges);
+    ++number_of_nodes;
 };
 
 void get_remove_announcement(Key key, int announcer_id) override {
-    --number_of_nodes;
     BaseStorage<KeyType>::get_remove_announcement(key, announcer_id);
+    if (number_of_nodes > 0) --number_of_nodes;
 }
 };
 
@@ -66,12 +64,12 @@ template <typename KeyType>
 class FennelAStarStorage : public FennelStorage<KeyType>, public AStarStorage<KeyType> {
 public:
     FennelAStarStorage(int id, 
-                       std::unique_ptr<IWeightAdjuster<KeyType>> _weight_adjuster, 
-                       FennelParameters _params, 
-                       std::map<NodeKey<KeyType>, Node<KeyType>> _nodes = {})
-        : FennelStorage<KeyType>(id, std::move(_weight_adjuster), _params, _nodes),
-          AStarStorage<KeyType>(id, std::move(_weight_adjuster), _nodes),
-          BaseStorage<KeyType>(id, std::move(_weight_adjuster), _nodes)
+                   std::unique_ptr<IWeightAdjuster<KeyType>> _weight_adjuster, 
+                   FennelParameters _params, 
+                   std::map<NodeKey<KeyType>, Node<KeyType>> _nodes = {})
+        : BaseStorage<KeyType>(id, std::move(_weight_adjuster), _nodes),
+        FennelStorage<KeyType>(id, std::move(_weight_adjuster), _params, _nodes),
+        AStarStorage<KeyType>(id, std::move(_weight_adjuster), _nodes)
     {}
 };
 

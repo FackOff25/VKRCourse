@@ -3,19 +3,21 @@
 #include "graph_loader.hpp"
 #include <iostream>
 #include <string>
+#include <iomanip>
 
 int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        std::cerr << "Использование: " << argv[0] << " <путь_к_конфигу>" << std::endl;
-        return 1;
-    }
-
     std::string config_path = argv[1];
 
-    Config config = ConfigParser::load_from_file(config_path);
-    Master<int> master(config);
-    master.inititalize();
+    unsigned int seed = 42;
+    if (argc >= 3) {
+        seed = std::stoul(argv[2]);
+    }
 
+    std::cout << "=== Запуск с seed = " << seed << " ===\n";
+
+    Config config = ConfigParser::load_from_file(config_path);
+    Master<int> master(config, seed);
+    master.inititalize();
     std::string command;
 
     while (true) {
@@ -33,6 +35,7 @@ int main(int argc, char* argv[]) {
                       << "  load <metis_file> [coords_file] [optimize every N nodes]  - загрузить граф\n"
                       << "  optimize                        - выполнить оптимизацию\n"
                       << "  path <from> <to>                  - найти путь между вершинами\n"
+                      << "  cut / stats                     - показать процент рёбер между хранилищами\n"
                       << "  print                           - вывести все хранилища\n"
                       << "  help                            - эта справка\n"
                       << "  exit / quit                     - выход\n";
@@ -77,6 +80,11 @@ int main(int argc, char* argv[]) {
             } catch (const std::exception& e) {
                 std::cerr << "Ошибка при поиске пути: " << e.what() << std::endl;
             }
+        }
+        else if (command == "cut" || command == "stats") {
+            double percent = master.get_cut_percent();
+            std::cout << "Процент рёбер между хранилищами: " 
+                    << std::fixed << std::setprecision(3) << percent << "%\n";
         }
         else if (command == "print") {
             master.log_storages();

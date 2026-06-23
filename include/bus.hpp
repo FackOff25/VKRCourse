@@ -11,12 +11,11 @@
 template <typename KeyType> 
 class SimpleBus : public IBus<KeyType> {
 private:
-std::random_device seed;
-std::mt19937 gen{seed()};
+std::mt19937 gen;
 std::map<int, IStorage<KeyType>*> storages;
 long total_edges = 0;
 public:
-SimpleBus(): storages() {};
+SimpleBus(unsigned int seed_value = 42) : gen(seed_value) {};
 
 int connect_storage(IStorage<KeyType>* storage) {
     if (storages.find(storage->get_id()) != storages.end()) {
@@ -57,12 +56,14 @@ int send_add_node(const Node<KeyType>& node) override {
     std::cout << std::endl;
     if (best_storages.empty()) {
         return -1;
-    } else {
-        std::uniform_int_distribution<> dist{0, best_storages.size() - 1};
-        IStorage<KeyType>* random_storage = best_storages[dist(gen)];
-        send_add_node(node, random_storage->get_id());
-        return random_storage->get_id();
     }
+    std::uniform_int_distribution<> dist{0, static_cast<int>(best_storages.size()) - 1};
+    IStorage<KeyType>* chosen = best_storages[dist(gen)];
+
+    std::cout << " → Chosen storage: " << chosen->get_id() << std::endl;
+
+    send_add_node(node, chosen->get_id());
+    return chosen->get_id();
 };
 
 bool send_add_node(const Node<KeyType>& node, int storage_id) override {
@@ -164,6 +165,29 @@ void adjust_weights(std::vector<NodeKey<KeyType>> path) {
     for (typename std::map<int, IStorage<KeyType>*>::iterator it = storages.begin(); it != storages.end(); ++it) {
         it->second->adjust_weight(path);
     }
+}
+
+double get_inter_storage_cut_percent() override {
+    if (storages.size() < 2) return 0.0;
+
+    long total_internal = 0;
+    long total_external = 0;
+
+    for (const auto& pair : storages) {
+        if (!pair.second) continue;
+        const BaseStorage<KeyType>* base = dynamic_cast<const BaseStorage<KeyType>*>(pair.second);
+        if (!base) continue;
+
+        total_internal += base->internal_edges_size();
+        total_external += base->external_edges_size();
+    }
+
+    // external_edges считаются в обоих направлениях → делим на 2
+    long inter_edges = total_external / 2;
+    long total_edges = total_internal + inter_edges;
+
+    if (total_edges == 0) return 0.0;
+    return (static_cast<double>(inter_edges) / total_edges) * 100.0;
 }
 
 };

@@ -27,16 +27,15 @@ private:
     int next_storage_id = 0;
 
 public:
-    Master(Config _cfg) : cfg(_cfg) {
-        bus = std::make_unique<SimpleBus<KeyType>>();
+    Master(Config _cfg, unsigned int random_seed = 42) : cfg(_cfg) {
+        bus = std::make_unique<SimpleBus<KeyType>>(random_seed);   // ← передаём seed
 
-        switch (cfg.optimzier_type)
-        {
+        switch (cfg.optimzier_type) {
         case OptimizerType::KL:
             optimizer = std::make_unique<KLExternalStorageOptimizer<KeyType>>(bus.get());
             break;
         case OptimizerType::NONE:
-            optimizer = std::make_unique<DummyExternalStorageOptimizer<KeyType>>();
+            optimizer = std::make_unique<DummyExternalStorageOptimizer<KeyType>>(bus.get());
             break;
         }
 
@@ -132,4 +131,8 @@ public:
 
         return oss.str();
     };
+
+    double get_cut_percent() const {
+        return bus->get_inter_storage_cut_percent();
+    }
 };
