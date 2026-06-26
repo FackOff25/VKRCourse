@@ -16,6 +16,64 @@ CONFIGS_BASE = "configs_for_experiments_2"
 RESULTS_DIR = "experiment_results"
 KL_LOG_FILE = "kl_experiment.log"
 
+ALREADY_RAN = [
+    'FENNEL+SCHISM+KL_s10_5000v',
+    'SIMPLE+SCHISM+KL_s10_5000v',
+    'FENNEL+SCHISM+KL_s12_5000v',
+    'SIMPLE+SCHISM+KL_s12_5000v',
+    'FENNEL+SCHISM+KL_s16_5000v',
+    'SIMPLE+SCHISM+KL_s16_5000v',
+    'FENNEL+SCHISM+KL_s4_5000v',
+    'SIMPLE+SCHISM+KL_s4_5000v',
+    'FENNEL+SCHISM+KL_s6_5000v',
+    'SIMPLE+SCHISM+KL_s6_5000v',
+    'FENNEL+SCHISM+KL_s8_5000v',
+    'SIMPLE+SCHISM+KL_s8_5000v',
+    'FENNEL+SCHISM+KL_s10_10000v',
+    'SIMPLE+SCHISM+KL_s10_10000v',
+    'FENNEL+SCHISM+KL_s12_10000v',
+    'SIMPLE+SCHISM+KL_s12_10000v',
+    'FENNEL+SCHISM+KL_s16_10000v',
+    'SIMPLE+SCHISM+KL_s16_10000v',
+    'FENNEL+SCHISM+KL_s4_10000v',
+    'SIMPLE+SCHISM+KL_s4_10000v',
+    'FENNEL+SCHISM+KL_s6_10000v',
+    'SIMPLE+SCHISM+KL_s6_10000v',
+    'FENNEL+SCHISM+KL_s8_10000v',
+    'SIMPLE+SCHISM+KL_s8_10000v',
+    'FENNEL+SCHISM+KL_s10_20000v',
+    'SIMPLE+SCHISM+KL_s10_20000v',
+    'FENNEL+SCHISM+KL_s12_20000v',
+    'SIMPLE+SCHISM+KL_s12_20000v',
+    'FENNEL+SCHISM+KL_s16_20000v',
+    'SIMPLE+SCHISM+KL_s16_20000v',
+    'FENNEL+SCHISM+KL_s4_20000v',
+    'SIMPLE+SCHISM+KL_s4_20000v',
+    'FENNEL+SCHISM+KL_s6_20000v',
+    'SIMPLE+SCHISM+KL_s6_20000v',
+    'FENNEL+SCHISM+KL_s8_20000v',
+    'SIMPLE+SCHISM+KL_s8_20000v',
+    'FENNEL+SCHISM+KL_s10_50000v',
+    'SIMPLE+SCHISM+KL_s10_50000v',
+    'FENNEL+SCHISM+KL_s12_50000v',
+    'SIMPLE+SCHISM+KL_s12_50000v',
+    'FENNEL+SCHISM+KL_s16_50000v',
+    'SIMPLE+SCHISM+KL_s16_50000v',
+    'FENNEL+SCHISM+KL_s4_50000v',
+    'SIMPLE+SCHISM+KL_s4_50000v',
+    'FENNEL+SCHISM+KL_s6_50000v',
+    'FENNEL+SCHISM+KL_s8_50000v',
+    'FENNEL+SCHISM+KL_s10_100000v',
+    'FENNEL+SCHISM+KL_s12_100000v',
+    'FENNEL+SCHISM+KL_s16_100000v',
+    'FENNEL+SCHISM+KL_s4_100000v',
+    'FENNEL+SCHISM+KL_s6_100000v',
+    'FENNEL+SCHISM+KL_s8_100000v',
+    'FENNEL+SCHISM+KL_s10_250000v',
+    'FENNEL+SCHISM+KL_s12_250000v',
+    'FENNEL+SCHISM+KL_s16_250000v'
+]
+
 SHOW_CLIENT_OUTPUT = False
 
 os.makedirs(RESULTS_DIR, exist_ok=True)
@@ -65,12 +123,11 @@ def run_experiment(config_path: str, graph_metis: str, coords: str, exp_name: st
             time.sleep(0.4)
 
         if SHOW_CLIENT_OUTPUT:
-            stdout_output, _ = process.communicate(timeout=60000)
+            stdout_output, _ = process.communicate(timeout=600000)
             print("=== CLIENT OUTPUT ===\n", stdout_output)
         else:
-            process.wait(timeout=60000)
+            process.wait(timeout=600000)
 
-        # === УЛУЧШЕННЫЙ ПАРСИНГ ЛОГА ===
         initial_cuts = []
         final_cuts = []
         iterations_list = []
@@ -184,6 +241,9 @@ def main():
                     continue
 
                 exp_name = get_short_description(storage_num, stream, req, opt, v_str)
+                if exp_name in ALREADY_RAN:
+                    print(f'{exp_name} has already been ran, skip')
+                    continue
                 result = run_experiment(config_file, metis_file, coords_file, exp_name)
 
                 if result:

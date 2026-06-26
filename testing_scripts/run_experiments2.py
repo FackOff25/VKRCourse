@@ -105,7 +105,7 @@ def run_experiment(config_path, graph_metis, coords, queries, exp_name, v):
 
         # === Команды ===
         commands = [
-            f"load {graph_metis} {coords} 500\n",
+            f"load {graph_metis} {coords}\n",
             "optimize\n"
         ]
 
@@ -126,7 +126,7 @@ def run_experiment(config_path, graph_metis, coords, queries, exp_name, v):
                 break
             process.stdin.write(cmd)
             process.stdin.flush()
-            if (i + 1) % 500 == 0:
+            if (i + 1) % 5000 == 0:
                 commands.append(f"Отправлено i команд\n")
             #time.sleep(0.003)  # уменьшил задержку
 
@@ -197,7 +197,7 @@ def main():
             query_file = f"{gdir}/queries_{v_str}.txt"
 
             if not os.path.exists(query_file):
-                print(f"⚠ Пропуск графа {v_str}v — нет queries")
+                print(f"Пропуск графа {v_str}v — нет queries")
                 continue
 
             queries = load_queries(query_file)

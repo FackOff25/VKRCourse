@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 import pandas as pd
 from datetime import datetime
+from statistics import mean
 
 # ==================== НАСТРОЙКИ ====================
 CLIENT_BINARY = "../main.out"
@@ -15,21 +16,22 @@ CONFIGS_BASE = "configs_for_experiments"
 RESULTS_DIR = "experiment_results"
 LOG_FILE = "/home/fackoff/uniCode/VKRCourse/testing_scripts/path_edges.log"
 
-SHOW_CLIENT_OUTPUT = False  
+ALREADY_RAN = [
+]
+
+SHOW_CLIENT_OUTPUT = False
 
 os.makedirs(RESULTS_DIR, exist_ok=True)
 os.makedirs(f"{RESULTS_DIR}/raw_logs", exist_ok=True)
 
 
-def get_short_description(storage_num, stream, req, opt):
-    return f"{stream}+{req}+{opt}_s{storage_num}"
-
+def get_short_description(storage_num, stream, req, opt, vertices):
+    return f"{stream}+{req}+{opt}_s{storage_num}_{vertices}v"
 
 def load_queries(query_file: str):
     queries = []
     with open(query_file, 'r') as f:
         lines = f.readlines()
-    
     for line in lines[1:]:
         parts = line.strip().split()
         if len(parts) >= 3:
@@ -39,8 +41,7 @@ def load_queries(query_file: str):
                 continue
     return queries
 
-
-def run_experiment(config_path: str, graph_metis: str, coords: str, queries: list, exp_name: str):
+def run_experiment(config_path, graph_metis, coords, queries, exp_name):
     print(f"\n{'='*100}")
     print(f" Запуск эксперимента: {exp_name}")
     print(f"   Config: {config_path}")
@@ -52,33 +53,15 @@ def run_experiment(config_path: str, graph_metis: str, coords: str, queries: lis
         os.rename(LOG_FILE, f"{RESULTS_DIR}/raw_logs/{exp_name}_{int(time.time())}.log")
 
     try:
-        # Настройка вывода в зависимости от флага
-        if SHOW_CLIENT_OUTPUT:
-            stdout = subprocess.PIPE
-            stderr = subprocess.STDOUT
-        else:
-            stdout = subprocess.DEVNULL
-            stderr = subprocess.DEVNULL
-
         process = subprocess.Popen(
-            [CLIENT_BINARY, config_path],
+            [CLIENT_BINARY, config_path, "42"],  # фиксируем seed
             stdin=subprocess.PIPE,
-            stdout=stdout,
-            stderr=stderr,
+            stdout=subprocess.PIPE if SHOW_CLIENT_OUTPUT else subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
             text=True,
             bufsize=1,
             universal_newlines=True
         )
-
-        # Чтение вывода только если он включён
-        if SHOW_CLIENT_OUTPUT:
-            def print_output():
-                for line in process.stdout:
-                    print(line.strip(), flush=True)
-            
-            import threading
-            output_thread = threading.Thread(target=print_output, daemon=True)
-            output_thread.start()
 
         # === Команды ===
         commands = [
@@ -86,30 +69,27 @@ def run_experiment(config_path: str, graph_metis: str, coords: str, queries: lis
             "optimize\n"
         ]
 
-        i=0
-        for fr, to in queries:
-            i+=1
+        # Добавляем запросы + оптимизацию каждые 1000 запросов
+        for i, (fr, to) in enumerate(queries):
             commands.append(f"path {fr} {to}\n")
-            if (i + 1) % 500 == 0:
-                commands.append(f"opt\n")
+            if (i + 1) % 1000 == 0:
+                commands.append("optimize\n")   # или "opt\n", если команда поддерживает
 
-
+        commands.append("cut\n")   # для контроля
         commands.append("exit\n")
 
-        i=0
+        # Отправка команд
         for cmd in commands:
-            i=i+1
             if process.poll() is not None:
+                print("Процесс завершился преждевременно!")
                 break
             process.stdin.write(cmd)
             process.stdin.flush()
-            if (i + 1) % 500 == 0:
-                commands.append(f"Отправлено i команд\n")
-            #time.sleep(0.003)  # уменьшил задержку
+            # time.sleep(0.001)  # можно оставить маленькую задержку при необходимости
 
-        #process.wait(timeout=900)
+        process.wait(timeout=1200)
 
-        # Обработка лога path_edges.log
+        # === Обработка лога ===
         if os.path.exists(LOG_FILE):
             df = pd.read_csv(LOG_FILE, sep=r'\s+', header=None, 
                            names=['path_edges', 'inter_shard'], engine='python')
@@ -119,12 +99,20 @@ def run_experiment(config_path: str, graph_metis: str, coords: str, queries: lis
             total_inter = int(df['inter_shard'].sum())
             percent = (total_inter / total_edges * 100) if total_edges > 0 else 0.0
 
-            print(f"\n {exp_name} завершён → {percent:.3f}% межшардовых ({total_inter}/{total_edges})")
+            # Статистика по неудачным путям
+            failed = (df['path_edges'] == 0).sum()
+
+            print(f"\n {exp_name} завершён")
+            print(f"   Запросов отправлено: {len(queries)}")
+            print(f"   Записей в логе: {total_paths} (failed: {failed})")
+            print(f"   → {percent:.3f}% межшардовых ({total_inter}/{total_edges})")
             
             return {
                 'experiment': exp_name,
-                'storage_num': storage_num,
+                'storage_num': int(exp_name.split('_s')[1].split('_')[0]),
+                'vertices': int(exp_name.split('_')[-1].replace('v','')),
                 'total_paths': total_paths,
+                'failed_paths': failed,
                 'total_edges': total_edges,
                 'total_inter_shard': total_inter,
                 'inter_shard_percent': round(percent, 4)
@@ -139,57 +127,63 @@ def run_experiment(config_path: str, graph_metis: str, coords: str, queries: lis
 
 
 def main():
-    global storage_num  # для упрощения
     results = []
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    result_file = f"{RESULTS_DIR}/results_{timestamp}.csv"
-    for storage_dir in sorted(glob.glob(f"{CONFIGS_BASE}/storage_*")):
-        storage_num = int(storage_dir.split('_')[-1])
+    result_file = f"{RESULTS_DIR}/ipt_experiment_{timestamp}.csv"
 
-        for config_dir in sorted(glob.glob(f"{storage_dir}/*")):
-            config_file = f"{config_dir}/config.ini"
-            if not os.path.exists(config_file):
-                continue
+    graph_dirs = sorted(glob.glob(f"{GRAPHS_BASE}/graph_*v"), 
+                       key=lambda x: int(Path(x).name.split('_')[-1].replace('v','')))
 
-            dirname = os.path.basename(config_dir)
-            parts = dirname.split('_')
-            stream = parts[1]
-            req = parts[3]
-            opt = parts[5]
-            exp_name = get_short_description(storage_num, stream, req, opt)
+    for gdir in graph_dirs:
+        v_str = Path(gdir).name.split('_')[-1].replace('v', '')
+        metis_file = f"{gdir}/graph_{v_str}.metis"
+        coords_file = f"{gdir}/coords_{v_str}.txt"
+        query_file = f"{gdir}/queries_{v_str}.txt"
 
-            graph_dirs = sorted(glob.glob(f"{GRAPHS_BASE}/graph_10000v"), reverse=True)
-            if not graph_dirs:
-                continue
+        for storage_dir in sorted(glob.glob(f"{CONFIGS_BASE}/storage_*")):
+            storage_num = int(storage_dir.split('_')[-1])
 
-            gdir = graph_dirs[0]
-            v = gdir.split('_')[-1].replace('v', '')
-            metis_file = f"{gdir}/graph_{v}.metis"
-            coords_file = f"{gdir}/coords_{v}.txt"
-            query_file = f"{gdir}/queries_{v}.txt"
+            for config_dir in sorted(glob.glob(f"{storage_dir}/*")):
+                config_file = f"{config_dir}/config.ini"
+                if not os.path.exists(config_file):
+                    continue
 
-            if not os.path.exists(query_file):
-                print(f"Запросы не найдены: {query_file}")
-                continue
+                dirname = os.path.basename(config_dir)
+                parts = dirname.split('_')
+                if len(parts) < 6:
+                    continue
+                    
+                stream = parts[1]
+                req = parts[3]
+                opt = parts[5]
 
-            queries = load_queries(query_file)
-            result = run_experiment(config_file, metis_file, coords_file, queries, exp_name)
+                if not os.path.exists(metis_file):
+                    continue
 
-            if result:
-                results.append(result)
-                df_temp = pd.DataFrame(results)
-                df_temp.to_csv(result_file, index=False)
-                print(f"   → Результат сохранён (всего {len(results)} экспериментов)")
+                queries = load_queries(query_file)
+                exp_name = get_short_description(storage_num, stream, req, opt, v_str)
+                if exp_name in ALREADY_RAN:
+                    print(f'{exp_name} has already been ran, skip')
+                    continue
+                result = run_experiment(config_file, metis_file, coords_file, queries, exp_name)
 
-    df = pd.DataFrame(results)
-    df.to_csv(result_file, index=False)
+                if result:
+                    results.append(result)
+                    # Сохраняем после каждого эксперимента
+                    pd.DataFrame(results).to_csv(result_file, index=False)
+                    print(f"   → Сохранено ({len(results)} экспериментов)")
 
-    print(f"\n{'='*100}")
-    print("Эксперименты завершены!")
-    print(f"Результаты: {result_file}")
-    if not df.empty:
+            time.sleep(4)  # пауза между экспериментами
+
+    print(f"\n{'='*110}")
+    print("Все эксперименты завершены!")
+    print(f"Результаты сохранены в: {result_file}")
+
+    if results:
+        df = pd.DataFrame(results)
         print("\nСводка:")
-        print(df[['experiment', 'inter_shard_percent']].sort_values('inter_shard_percent'))
+        print(df[['experiment', 'vertices', 'inter_shard_percent']]
+              .sort_values(['vertices', 'inter_shard_percent']))
 
 
 if __name__ == "__main__":
