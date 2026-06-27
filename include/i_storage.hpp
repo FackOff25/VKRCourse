@@ -10,6 +10,7 @@
 template <typename KeyType>
 class IStorage {
 public:
+virtual ~IStorage() = default;
 virtual int get_id() const = 0;
 virtual void connect_to_bus(IBus<KeyType>* _bus) = 0;
 

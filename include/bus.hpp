@@ -81,6 +81,14 @@ bool send_add_node(const Node<KeyType>& node, int storage_id) override {
     return true;
 };
 
+bool send_remove_node(const Node<KeyType>& node) override {
+    return send_remove_node(node.get_key());
+};
+
+bool send_remove_node(const Node<KeyType>& node, int storage_id) override {
+    return send_remove_node(node.get_key(), storage_id);
+};
+
 bool send_remove_node(const NodeKey<KeyType>& node) override {
     bool success = false;
     // TODO: implement counter change when remove
@@ -188,6 +196,54 @@ double get_inter_storage_cut_percent() override {
 
     if (total_edges == 0) return 0.0;
     return (static_cast<double>(inter_edges) / total_edges) * 100.0;
+}
+
+size_t get_total_vertices() const override {
+    size_t count = 0;
+    for (const auto& pair : storages) {
+        if (pair.second) {
+            count += pair.second->size();
+        }
+    }
+    return count;
+}
+
+size_t get_total_edges() const override {
+    size_t internal = 0;
+    size_t external = 0;
+
+    for (const auto& pair : storages) {
+        if (!pair.second) continue;
+        const BaseStorage<KeyType>* base = dynamic_cast<const BaseStorage<KeyType>*>(pair.second);
+        if (!base) continue;
+
+        internal += base->internal_edges_size();
+        external += base->external_edges_size();
+    }
+
+    return internal + (external / 2);
+}
+
+size_t get_internal_edges() const override {
+    size_t count = 0;
+    for (const auto& pair : storages) {
+        if (pair.second) {
+            const BaseStorage<KeyType>* base = dynamic_cast<const BaseStorage<KeyType>*>(pair.second);
+            if (base) count += base->internal_edges_size();
+        }
+    }
+    return count;
+}
+
+size_t get_inter_edges() const override {
+    size_t external = 0;
+    for (const auto& pair : storages) {
+        if (pair.second) {
+            const BaseStorage<KeyType>* base = dynamic_cast<const BaseStorage<KeyType>*>(pair.second);
+            if (base) external += base->external_edges_size();
+        }
+    }
+    return external / 2;
 }
 
 };

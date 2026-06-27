@@ -135,4 +135,27 @@ public:
     double get_cut_percent() const {
         return bus->get_inter_storage_cut_percent();
     }
+
+    void print_stats() const {
+        if (!bus) {
+                std::cout << "Bus не инициализирован\n";
+                return;
+            }
+
+            size_t vertices = bus->get_total_vertices();
+            size_t total_edges = bus->get_total_edges();
+            size_t internal = bus->get_internal_edges();
+            size_t inter = bus->get_inter_edges();
+            double cut = bus->get_inter_storage_cut_percent();
+
+            std::cout << "=== Статистика распределённого графа ===\n";
+            std::cout << "Хранилищ:              " << storage_count() << "\n";
+            std::cout << "Вершин всего:          " << vertices << "\n";
+            std::cout << "Рёбер всего:           " << total_edges << "\n";
+            std::cout << "  • внутренних:        " << internal << "\n";
+            std::cout << "  • межшардовых:       " << inter << "\n";
+            std::cout << "Процент cut:           " 
+                    << std::fixed << std::setprecision(3) 
+                    << cut << "%\n";
+        }
 };

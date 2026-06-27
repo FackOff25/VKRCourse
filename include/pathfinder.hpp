@@ -11,6 +11,7 @@ template <typename KeyType>
 class IPathfinder {
 public:
     virtual Path<KeyType> find_path(const NodeKey<KeyType>& from, const NodeKey<KeyType>& to) = 0;
+    virtual ~IPathfinder() = default;
 };
 
 template<typename KeyType>

@@ -16,6 +16,7 @@ template <typename KeyType>
 class IExternalStorageOptimizer {
 public:
     virtual void optimize(int storage1, int storage2) = 0;
+    virtual ~IExternalStorageOptimizer() = default;
 };
 
 template <typename KeyType>
@@ -88,6 +89,22 @@ private:
         return gv_a + gv_b - 2.0f * cut_weight;
     }
 
+    void swap(const Node<KeyType>& node_1, const Node<KeyType>& node_2, int storage_1, int storage_2) {
+        bus->send_remove_node(node_1);
+        bus->send_remove_node(node_2);
+        bus->send_add_node(node_2, storage_1);
+        bus->send_add_node(node_1, storage_2);
+    }
+
+    void swap(const NodeKey<KeyType>& key_1, const NodeKey<KeyType>& key_2, int storage_1, int storage_2) {
+        Node<KeyType> node_1 = bus->request_node(key_1);
+        Node<KeyType> node_2 = bus->request_node(key_2);
+        bus->send_remove_node(node_1);
+        bus->send_remove_node(node_2);
+        bus->send_add_node(node_2, storage_1);
+        bus->send_add_node(node_1, storage_2);
+    }
+
 public:
     KLExternalStorageOptimizer(IBus<KeyType>* _bus, int _iterations_limit = 10)
         : bus(_bus), iterations_limit(_iterations_limit) {}
@@ -132,8 +149,8 @@ public:
                       << " (storages " << storage1 << " <-> " << storage2 << ")\n";
             improved = false;
 
-            std::set<NodeKey<KeyType>> locked;
-            std::vector<std::pair<NodeKey<KeyType>, NodeKey<KeyType>>> swap_sequence;
+            std::set<Node<KeyType>> locked;
+            std::vector<std::pair<Node<KeyType>, Node<KeyType>>> swap_sequence;
             std::vector<float> cumulative_gains;
             float max_gain = 0.0f;
             int best_prefix_length = 0;
@@ -190,14 +207,11 @@ public:
                 }
 
                 // Временный своп
-                bus->send_remove_node(best_a.get_key());
-                bus->send_remove_node(best_b.get_key());
-                bus->send_add_node(best_b.get_key(), storage1);
-                bus->send_add_node(best_a.get_key(), storage2);
+                swap(best_a, best_b, storage1, storage2);
 
-                swap_sequence.push_back({best_a.get_key(), best_b.get_key()});
-                locked.insert(best_a.get_key());
-                locked.insert(best_b.get_key());
+                swap_sequence.push_back({best_a, best_b});
+                locked.insert(best_a);
+                locked.insert(best_b);
 
                 float current_cumulative = (cumulative_gains.empty() ? 0.0f : cumulative_gains.back()) + best_step_gain;
                 cumulative_gains.push_back(current_cumulative);
@@ -211,7 +225,7 @@ public:
                 std::set<Edge<KeyType>> boundary_edges1 = bus->ask_edges_to_storage(storage1, storage2);
                 std::set<Edge<KeyType>> boundary_edges2 = bus->ask_edges_to_storage(storage2, storage1);
 
-                std::set<NodeKey<KeyType>> affected = {best_a.get_key(), best_b.get_key()};
+                std::set<Node<KeyType>> affected = {best_a, best_b};
                 for (const auto& e : best_a.edges) affected.insert(e.first);
                 for (const auto& e : best_b.edges) affected.insert(e.first);
 
@@ -240,19 +254,13 @@ public:
                 // Откат всех свопов
                 for (int i = swap_sequence.size() - 1; i >= 0; --i) {
                     auto [a, b] = swap_sequence[i];
-                    bus->send_remove_node(a);
-                    bus->send_remove_node(b);
-                    bus->send_add_node(a, storage1);
-                    bus->send_add_node(b, storage2);
+                    swap(a,b, storage2, storage1);
                 }
 
                 // Применяем только лучший префикс
                 for (int i = 0; i < best_prefix_length; ++i) {
                     auto [a, b] = swap_sequence[i];
-                    bus->send_remove_node(a);
-                    bus->send_remove_node(b);
-                    bus->send_add_node(b, storage1);
-                    bus->send_add_node(a, storage2);
+                    swap(a,b, storage1, storage2);
                 }
             }
 

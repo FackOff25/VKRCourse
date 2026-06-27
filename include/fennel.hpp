@@ -68,8 +68,8 @@ public:
                    FennelParameters _params, 
                    std::map<NodeKey<KeyType>, Node<KeyType>> _nodes = {})
         : BaseStorage<KeyType>(id, std::move(_weight_adjuster), _nodes),
-        FennelStorage<KeyType>(id, std::move(_weight_adjuster), _params, _nodes),
-        AStarStorage<KeyType>(id, std::move(_weight_adjuster), _nodes)
+        FennelStorage<KeyType>(id, nullptr, _params, _nodes),
+        AStarStorage<KeyType>(id, nullptr, _nodes)
     {}
 };
 

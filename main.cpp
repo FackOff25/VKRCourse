@@ -34,8 +34,9 @@ int main(int argc, char* argv[]) {
             std::cout << "Доступные команды:\n"
                       << "  load <metis_file> [coords_file] [optimize every N nodes]  - загрузить граф\n"
                       << "  optimize                        - выполнить оптимизацию\n"
-                      << "  path <from> <to>                  - найти путь между вершинами\n"
-                      << "  cut / stats                     - показать процент рёбер между хранилищами\n"
+                      << "  path <from> <to>                - найти путь между вершинами\n"
+                      << "  stats                           - полная статистика\n"
+                      << "  cut                             - показать процент рёбер между хранилищами\n"
                       << "  print                           - вывести все хранилища\n"
                       << "  help                            - эта справка\n"
                       << "  exit / quit                     - выход\n";
@@ -81,10 +82,13 @@ int main(int argc, char* argv[]) {
                 std::cerr << "Ошибка при поиске пути: " << e.what() << std::endl;
             }
         }
-        else if (command == "cut" || command == "stats") {
+        else if (command == "cut") {
             double percent = master.get_cut_percent();
             std::cout << "Процент рёбер между хранилищами: " 
                     << std::fixed << std::setprecision(3) << percent << "%\n";
+        }
+        else if (command == "stats") {
+            master.print_stats();
         }
         else if (command == "print") {
             master.log_storages();

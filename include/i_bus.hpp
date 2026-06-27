@@ -9,9 +9,12 @@
 template <typename KeyType> 
 class IBus {
 public:
+    virtual ~IBus() = default;
     virtual Node<KeyType> request_node(const NodeKey<KeyType>& node) = 0;
     virtual int send_add_node(const Node<KeyType>& node) = 0;
     virtual bool send_add_node(const Node<KeyType>& node, int storage_id) = 0;
+    virtual bool send_remove_node(const Node<KeyType>& node) = 0;
+    virtual bool send_remove_node(const Node<KeyType>& node, int storage_id) = 0;
     virtual bool send_remove_node(const NodeKey<KeyType>& node) = 0;
     virtual bool send_remove_node(const NodeKey<KeyType>& node, int storage_id) = 0;
     virtual int ask_who_has(int asker_id, NodeKey<KeyType> key) = 0;
@@ -25,6 +28,10 @@ public:
     virtual LocalPathResult<KeyType> request_local_path(int storage_id, const NodeKey<KeyType>& start, const NodeKey<KeyType>& goal, const std::unordered_set<NodeKey<KeyType>>& global_visited = {}) = 0;
     virtual void adjust_weights(std::vector<NodeKey<KeyType>> path) = 0;
     virtual double get_inter_storage_cut_percent() = 0;
+    virtual size_t get_total_vertices() const = 0;
+    virtual size_t get_total_edges() const = 0;
+    virtual size_t get_internal_edges() const = 0;
+    virtual size_t get_inter_edges() const = 0;
 };
 
 #endif // VKR\_IBUS

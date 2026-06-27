@@ -31,11 +31,9 @@ public:
     SimpleAStarStorage(int id, 
                        std::unique_ptr<IWeightAdjuster<KeyType>> _weight_adjuster, 
                        std::map<NodeKey<KeyType>, Node<KeyType>> _nodes = {})
-        : SimpleStorage<KeyType>(id, std::move(_weight_adjuster), _nodes),
-          AStarStorage<KeyType>(id, std::move(_weight_adjuster), _nodes),
-          BaseStorage<KeyType>(id, std::move(_weight_adjuster), _nodes)
-    {
-        // Если нужно разрешить diamond problem явно
-    }
+        : BaseStorage<KeyType>(id, std::move(_weight_adjuster), _nodes)
+        , SimpleStorage<KeyType>(id, nullptr, _nodes) 
+        , AStarStorage<KeyType>(id, nullptr, _nodes)
+    {}
 };
 #endif // VKR\_COURSE\_STORAGE
