@@ -16,7 +16,7 @@ CLIENT_BINARY = "../main.out"
 GRAPHS_BASE = "graphs_for_experiments"
 CONFIGS_BASE = "configs_for_experiments"
 RESULTS_DIR = "experiment_results"
-MAX_WORKERS = max(1, int((multiprocessing.cpu_count() - 6) / 2))
+MAX_WORKERS = max(1, int((multiprocessing.cpu_count() - 8) / 2))
 
 SHOW_CLIENT_OUTPUT = False
 
@@ -33,7 +33,7 @@ ALREADY_RAN = [
     "FENNEL+SCHISM+NONE_s12_5000v",
     "FENNEL+SCHISM+KL_s12_5000v",
     "FENNEL+WAWPART+KL_s10_5000v",
-    "SIMPLE+SCHISM+NONE_s12_5000v"
+    "SIMPLE+SCHISM+NONE_s12_5000v",
     "FENNEL+SCHISM+KL_s16_5000v",
     "FENNEL+SCHISM+NONE_s16_5000v",
     "SIMPLE+SCHISM+KL_s12_5000v",
@@ -124,7 +124,8 @@ ALREADY_RAN = [
     "SIMPLE+SCHISM+NONE_s6_20000v",
     "FENNEL+WAWPART+KL_s6_20000v",
     "FENNEL+SCHISM+KL_s8_20000v",
-    "FENNEL+SCHISM+NONE_s8_20000v"
+    "FENNEL+SCHISM+NONE_s8_20000v",
+    "SIMPLE+SCHISM+KL_s16_10000v"
 ]
 
 def signal_handler(sig, frame):
@@ -247,6 +248,7 @@ def run_single_experiment(args):
                 'inter_shard_percent': round(percent, 4),
                 'log_dir': str(exp_log_dir)
             }
+        print(time.strftime("%Y-%m-%d %H:%M:%S") + ": ended " + exp_name)
         return None
 
     except Exception as e:

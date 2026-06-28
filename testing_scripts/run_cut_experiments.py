@@ -20,9 +20,11 @@ CONFIGS_BASE = "configs_for_experiments_2"
 RESULTS_DIR = "experiment_results"
 KL_LOG_FILE = "kl_experiment.log"
 
-MAX_WORKERS = max(1, int((multiprocessing.cpu_count() - 8) / 2))
+MAX_WORKERS = max(1, int((multiprocessing.cpu_count() - 4) / 2))
 
-ALREADY_RAN = [
+ALREADY_RAN = []
+
+ALREADY_RAN_2 = [
     "FENNEL+SCHISM+KL_s16_5000v",
     "FENNEL+SCHISM+KL_s12_5000v",
     "FENNEL+SCHISM+KL_s10_5000v",
@@ -140,7 +142,7 @@ def run_experiment(args):
         active_processes.append(process)
 
         commands = [
-            f"load {graph_metis} {coords}\n",
+            f"load {graph_metis} {coords} 1000\n",
             "optimize\n",
             "cut\n",
             "exit\n"
@@ -195,18 +197,16 @@ def run_experiment(args):
             'experiment': exp_name,
             'storage_num': int(exp_name.split('_s')[1].split('_')[0]),
             'vertices': int(exp_name.split('_')[-1].replace('v', '')),
-            'initial_cut_percent': round(initial_cut, 4) if initial_cut is not None else None,
+            #'initial_cut_percent': round(initial_cut, 4) if initial_cut is not None else None,
             'final_cut_percent': round(final_cut, 4) if final_cut is not None else None,
-            'delta_cut': round(final_cut - initial_cut, 4) if initial_cut is not None and final_cut is not None else None,
+            #'delta_cut': round(final_cut - initial_cut, 4) if initial_cut is not None and final_cut is not None else None,
             'kl_iterations_total': total_iterations,
             'kl_iterations_max': max_iterations,
             'kl_pairs': len(initial_cuts),
             'log_dir': str(exp_log_dir)
         }
 
-        delta_str = f" (Δ = {result['delta_cut']})" if result['delta_cut'] is not None else ""
-        print(f" → Initial: {result['initial_cut_percent']}% | Final: {result['final_cut_percent']}%{delta_str} "
-              f"| KL max iters: {max_iterations} | pairs: {result['kl_pairs']}")
+        print(time.strftime("%Y-%m-%d %H:%M:%S") + ": ended " + exp_name)
 
         return result
 
