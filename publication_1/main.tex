@@ -22,16 +22,16 @@
 type      = {Research Article},
 doi       = {xxxx},
 title     = {Heterogeneous Computational Platform for Parallel Graph Processing},
-author    = {Aleksey Yu. Popov\,\cor{}, Stanislav V. Ibragimov, Maxim P. Kalitventsev, Mikhail A. Geine, Jiajian Li, Andrey A. Belevantsev},
-runauthor = {A. Yu. Popov, S. V. Ibragimov, M. P. Kalitventsev, M. A. Geine, J. Li, Andrey A. Belevantsev},
+author    = {Vladimir M. Kozlov},
+runauthor = {V. M. Kozlov},
 abstract  = {
-Graph models represent one of the most promising directions for developing data analytics and artificial intelligence systems. Research in this field encompasses not only classical graphs but also complex types such as hypergraphs and metagraphs. The scale and complexity of emerging graph processing tasks necessitate the development of specialized hardware-software solutions to enhance the efficiency of existing computing systems for such workloads. This paper presents the architecture and operational features of the Teragraph computing complex and its cloud platform, designed for processing large-scale graphs. The fundamental principle embedded in the system architecture is the implementation of a multi-level associative memory subsystem, which significantly influences software development methodology and operational characteristics. We provide a systematic description of the hardware and software structure of the computing complex, presenting key technical solutions that enable implementation of large-scale associative memory based on DDR4 SDRAM addressable memory. The associative-address translation for accessing such storage is implemented through the trace processing unit of the Leonard Euler microprocessor. Additionally, the paper describes enhancements to the network interaction subsystem based on a bidirectional ring topology and high-speed 100Gb Ethernet links.
+Efficient graph partitioning is a key factor affecting the performance and scalability of distributed graph databases. The placement of graph vertices across multiple storage nodes determines the amount of inter-shard communication required during graph traversal and shortest-path queries. Modern partitoning algorithms can be roughly devided in two groups: offline and online, in which former take significantly more time than the latter but provide better results. This paper presents a hybrid graph partitioning approach that combines the online partitioning of Fennel algorithm and refintment approach used in METIS framework. The proposed method first constructs an initial balanced partitioning using Fennel and subsequently applies KL-based local optimization to reduce the number of edges crossing shard boundaries while preserving partition balance. This combination leverages the scalability of streaming partitioning and the optimization capabilities of iterative local refinement.
 },
-keywords  = {computing system, graph processing, discrete mathematics instruction set, associative processing, computing accelerator, heterogeneous architecture},
+keywords  = {computing system, graph partitioning},
 copyright = {The Author(s)},
-received  = 2025-12-14,
-revised   = 2025-12-xx,
-accepted  = 2025-12-xx,
+received  = 2026-06-14,
+revised   = 2026-06-xx,
+accepted  = 2026-06-xx,
 }
 
 \address{Alexey Yu. Popov, Stanislav V. Ibragimov, Maxim P. Kalitventsev, Mikhail A. Geine, Jiajian Li are with Bauman Moscow State Technical University, Moscow, 105005, Russian Federation. E-mail: alexpopov@bmstu.ru}

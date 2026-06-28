@@ -23,12 +23,13 @@ template <typename KeyType>
 class DummyExternalStorageOptimizer : public IExternalStorageOptimizer<KeyType> {
 private:
     IBus<KeyType>* bus;
+    std::string log_file_path; 
 public:
-    DummyExternalStorageOptimizer(IBus<KeyType>* _bus)
-        : bus(_bus) {}
+    DummyExternalStorageOptimizer(IBus<KeyType>* _bus, std::string _log_file_path = "kl_experiment.log")
+        : bus(_bus), log_file_path(_log_file_path) {}
     void optimize(int storage1, int storage2) override {
         double cut = bus->get_inter_storage_cut_percent();
-        std::ofstream log_file("kl_experiment.log", std::ios::app);
+        std::ofstream log_file(log_file_path, std::ios::app);
         if (log_file.is_open()) {
             log_file << "KL " << storage1 << "-" << storage2 
                     << " iterations=0 initial_cut=" << cut 
@@ -43,6 +44,7 @@ template <typename KeyType>
 class KLExternalStorageOptimizer : public IExternalStorageOptimizer<KeyType> {
 private:
     IBus<KeyType>* bus;
+    std::string log_file_path; 
     int iterations_limit = 10;
 
     float calculate_gv(const Node<KeyType>& node, std::set<Edge<KeyType>> boundary_edges) const {
@@ -106,8 +108,8 @@ private:
     }
 
 public:
-    KLExternalStorageOptimizer(IBus<KeyType>* _bus, int _iterations_limit = 10)
-        : bus(_bus), iterations_limit(_iterations_limit) {}
+    KLExternalStorageOptimizer(IBus<KeyType>* _bus, std::string _log_file_path = "kl_experiment.log", int _iterations_limit = 10)
+        : bus(_bus), log_file_path(_log_file_path), iterations_limit(_iterations_limit) {}
 
     std::map<int, std::map<Node<KeyType>, float>> calculate_gvs(int storage1, int storage2) const {
         std::map<int, std::map<Node<KeyType>, float>> result;
@@ -274,7 +276,7 @@ public:
                   << (final_cut - clean_initial_cut) << "%)\n";
 
         // Логирование в файл
-        std::ofstream log_file("kl_experiment.log", std::ios::app);
+        std::ofstream log_file(log_file_path, std::ios::app);
         if (log_file.is_open()) {
             log_file << "KL " << storage1 << "-" << storage2 
                      << " iterations=" << outer_iteration 

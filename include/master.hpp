@@ -28,18 +28,18 @@ private:
 
 public:
     Master(Config _cfg, unsigned int random_seed = 42) : cfg(_cfg) {
-        bus = std::make_unique<SimpleBus<KeyType>>(random_seed);   // ← передаём seed
+        bus = std::make_unique<SimpleBus<KeyType>>(random_seed);
 
         switch (cfg.optimzier_type) {
         case OptimizerType::KL:
-            optimizer = std::make_unique<KLExternalStorageOptimizer<KeyType>>(bus.get());
+            optimizer = std::make_unique<KLExternalStorageOptimizer<KeyType>>(bus.get(), get_kl_log_path());
             break;
         case OptimizerType::NONE:
-            optimizer = std::make_unique<DummyExternalStorageOptimizer<KeyType>>(bus.get());
+            optimizer = std::make_unique<DummyExternalStorageOptimizer<KeyType>>(bus.get(), get_kl_log_path());
             break;
         }
 
-        pathfinder = std::make_unique<AStarPathfinder<KeyType>>(*bus.get());
+        pathfinder = std::make_unique<AStarPathfinder<KeyType>>(*bus.get(), get_log_path());
     };
 
     int create_storage(int id, StreamingType streaming_type, RequestWeightType request_weight_type) {
@@ -157,5 +157,16 @@ public:
             std::cout << "Процент cut:           " 
                     << std::fixed << std::setprecision(3) 
                     << cut << "%\n";
-        }
+    }
+
+    // мне было лень прикручивать нормальное прокидывание
+    std::string get_log_path() {
+        const char* path = std::getenv("PATH_LOG");
+        return path ? path : "path_edges.log";
+    }
+
+    std::string get_kl_log_path() {
+        const char* path = std::getenv("KL_LOG");
+        return path ? path : "kl_experiment.log";
+    }
 };

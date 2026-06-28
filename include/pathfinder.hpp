@@ -18,7 +18,7 @@ template<typename KeyType>
 class AStarPathfinder : public IPathfinder<KeyType> {
 private:
 IBus<KeyType>& bus;
-std::string log_file_path = "/home/fackoff/uniCode/VKRCourse/testing_scripts/path_edges.log";
+std::string log_file_path = "path_edges.log";
 
 public:
 AStarPathfinder(IBus<KeyType>& bus_ref) : bus(bus_ref) {}
@@ -32,7 +32,7 @@ Path<KeyType> find_path(const NodeKey<KeyType>& start, const NodeKey<KeyType>& g
     Path<KeyType> full_path;
     std::unordered_set<NodeKey<KeyType>> global_visited;
     NodeKey<KeyType> current = start;
-    const int max_hops = 200;
+    const int max_hops = 500;
     int inter_storage_edges = 0;
 
     for (int hop = 0; hop < max_hops; ++hop) {

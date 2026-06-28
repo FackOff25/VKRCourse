@@ -135,16 +135,12 @@ LocalPathResult<KeyType> find_local_path(
             if (closed_set.count(neigh_key))
                 continue;
 
-            // ===== НЕ РАННИЙ RETURN (ВАЖНОЕ ИСПРАВЛЕНИЕ) =====
-            if (!this->has_node(neigh_key))
-            {
-                if (!found_exit)
-                {
+            if (!this->has_node(neigh_key)) {
+                if (!found_exit || heuristic(neigh_key) < heuristic(best_exit_node)) {
                     found_exit = true;
                     best_exit_node = neigh_key;
                     best_exit_path = reconstruct_path(current);
                 }
-
                 continue;
             }
 
