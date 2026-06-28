@@ -27,15 +27,12 @@ runauthor = {V. M. Kozlov},
 abstract  = {
 Efficient graph partitioning is a key factor affecting the performance and scalability of distributed graph databases. The placement of graph vertices across multiple storage nodes determines the amount of inter-shard communication required during graph traversal and shortest-path queries. Modern partitoning algorithms can be roughly devided in two groups: offline and online, in which former take significantly more time than the latter but provide better results. This paper presents a hybrid graph partitioning approach that combines the online partitioning of Fennel algorithm and refintment approach used in METIS framework. The proposed method first constructs an initial balanced partitioning using Fennel and subsequently applies KL-based local optimization to reduce the number of edges crossing shard boundaries while preserving partition balance. This combination leverages the scalability of streaming partitioning and the optimization capabilities of iterative local refinement.
 },
-keywords  = {computing system, graph partitioning},
+keywords  = {graph partitioning, distributed graph databases, streaming graph partitioning, Fennel, Kernighan--Lin algorithm, graph algorithms},
 copyright = {The Author(s)},
 received  = 2026-06-14,
 revised   = 2026-06-xx,
 accepted  = 2026-06-xx,
 }
-
-\address{Alexey Yu. Popov, Stanislav V. Ibragimov, Maxim P. Kalitventsev, Mikhail A. Geine, Jiajian Li are with Bauman Moscow State Technical University, Moscow, 105005, Russian Federation. E-mail: alexpopov@bmstu.ru}
-\address{Andrey A. Belevantsev is with the Federal State Budgetary Institution of Science Institute for System Programming of the Russian Academy of Sciences (ISP RAS), Moscow, 109004, Russia. Phone: +7(495) 912-07-54 (ext. 400), E-mail: info-isp@ispras.ru}
 
 % Добавьте в преамбулу документа настройки для листингов
 \usepackage{listings}
@@ -82,56 +79,22 @@ accepted  = 2026-06-xx,
 
 \section{Introduction}
 \input{intro_en}
-\section{Architectural Design Methodology}
+\section{Proposed approach}
 \input{chap1_en}
+
+\section{Experiments}
+\input{chap2_en}
 
 \section{Conclusion}
 \input{conclusion_en}
 
 \section*{Acknowledgments}
-This research was supported by the Russian Science Foundation grant No. 25-11-90002, \url{https://rscf.ru/project/25-11-90002/}
+// TODO:
 
 \section*{Declaration of Competing Interest}
-The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
+// TODO:
 
 \bibliographystyle{TSTbib}
 \bibliography{export-data}
-
-\section*{Author Biography}
-
-\begin{biography}[popov]{Alexey Yu. Popov} 
-Professor, Doctor of Science at Bauman Moscow State Technical University, Russia. Research interests: heterogeneous computing systems, graph processing architectures, discrete mathematics acceleration, and high-performance computing. Published over 60 papers; leads Teragraph project.
-\end{biography}
-
-\vspace{0.5cm}
-
-\begin{biography}[ibragimov]{Stanislav V. Ibragimov}
-Senior Lecturer at the Department of Computer Systems and Networks, Bauman Moscow State Technical University. His research focuses on network architectures for high-performance computing, distributed systems, and hardware-software co-design.
-\end{biography}
-
-\vspace{0.5cm}
-
-\begin{biography}[kalitventsev]{Maksim P. Kalitventsev}
-M.Sc., PhD student at Bauman Moscow State Technical University. Specializes in Network-on-Chip (NoC) architectures, simulation modeling, and hardware verification (UVM). Research focuses on communication fabrics for large-scale graph processing systems.
-\end{biography}
-
-\vspace{0.5cm}
-
-\begin{biography}[geine]{Mikhail A. Geine}
-M.Sc., PhD student and Research Engineer at Bauman Moscow State Technical University. His research interests lie in graph query languages, specialized DBMS, and their application for efficient data management and analytics on heterogeneous supercomputer architectures.
-\end{biography}
-
-\vspace{0.5cm}
-
-\begin{biography}[li]{Jiajian Li}
-Junior Research Fellow at Bauman Moscow State Technical University, specializing in graph-based knowledge structures and artificial intelligence. His research focuses on the development of semantic and event-driven models for intelligent systems. 
-\end{biography}
-
-\vspace{0.5cm}
-
-\begin{biography}[belevancev]{Andrey A. Belevantsev}
-Andrey Belevantsev is a Corresponding Member of the Russian Academy of Sciences (RAS, 2025), Doctor of Physical and Mathematical Sciences, and Professor of RAS. His research focuses on program optimizations, static analysis, safe compilation, and parallel programming. Author of 82 scientific works and 11 patents, and holds professor positions at Moscow State University and HSE University.
-\end{biography}
-
 
 \end{document}

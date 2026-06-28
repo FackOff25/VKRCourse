@@ -1,52 +1,55 @@
-One of the significant problems in creating a computing complex that performs graph storage and processing is applying a systems approach to its design, i.e., determining the most rational option for dividing software and hardware across system hierarchy levels. This means that early development stages must define the number and functional purpose of system elements for each hierarchical level. The following eight levels were identified (Figure \ref{fig:system_hierarhy}):
+The approaches to graph partitioning can be broadly divided into two categories: offline and online partitioning. Offline methods assume complete knowledge of the graph structure before partitioning, whereas online methods assign each newly arriving vertex to a partition without requiring the entire graph to be known in advance.
 
-\begin{figure*}[h!t]
-    \centering
-    \begin{minipage}{0.3\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{system_hierarhy_en.png}
-        \caption{System hierarchy levels}\label{fig:system_hierarhy}
-    \end{minipage}
-    % \hfill
-    \hspace{70pt}
-    \begin{minipage}{0.33\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{functional_hierarhy_en.png}
-        \caption{Software functional abstraction levels}\label{fig:functional_hierarhy}
-    \end{minipage}
-    % \captionof{figure}{Hierarchical structure of the Teragraph computing complex}\label{fig:teragraph_hierarhy}
-\end{figure*}
+The current state-of-the-art online graph partitioning algorithm is Fennel, which employs a heuristic objective function to determine the partition to which each incoming vertex should be assigned. Omitting the details presented in the original work \cite{Fennel}, the objective function can be expressed as
 
-\begin{itemize}
-    \item \textit{Key-Value Memory}. In our system, vertex and edge sets are organized as key-value pairs stored using contemporary semiconductor memory devices based on DDR4 DRAM technology. Since multiple processing elements access a shared storage medium, mechanisms for partitioning the unified address space among them and coordinating request ordering must be established. Memory access operates in batch mode, requiring the formation of key-value packets for efficient data transfer. Beyond the keys and values that represent graph vertices and edges, the memory also contains index structures that enable efficient data access and support graph processing algorithms.
-    
-    \item \textit{Parallel Memory Access}. A significant problem in multithreaded processing is memory bandwidth. To increase it, memory is divided into independent storage devices, with access through hardware queues and arbitration devices.
-    
-    \item \textit{Associative-Address Translation}. Information extraction from sets inherently assumes associative access, whereas physical storage media operate on address-based principles. The fundamental challenge of mapping arbitrary keys to specific storage addresses represents a significant technical problem that admits multiple solution approaches. Currently, B+ trees serve as the most practical index structure for this translation layer, offering a balanced compromise between search efficiency, storage overhead, and update performance. However, the search for optimal alternatives continues, with promising candidates including prefix trees (tries), hash-based structures, and hybrid designs that may offer better performance characteristics for specific graph workloads or key distributions.
+\begin{equation*}
+    g(P)=\sum_{i=1}^k\left[e(S_i,S_i)-p\binom{|S_i|}{2}\right].
+\end{equation*}
 
-    \item \textit{Discrete Mathematics Instructions}. This level requires defining hardware composition and efficient implementation of primitive set operations underlying the discrete mathematics instruction set DISC. This involves creating specialized microprocessor devices and microcode for control units.
-    
-    \item \textit{Heterogeneous Core}. Set processing or their combinations relies not only on discrete mathematics commands but also on arithmetic-logical processing. Universal microprocessors are also necessary for creating familiar programming models. Therefore, universal riscv64im microprocessor (CPE) and lnh64 microprocessor with DISC instruction set (SPE) are combined into a unified heterogeneous core.
-    
-    \item \textit{Network Interaction}. Since the computational resources of individual heterogeneous cores are inherently limited, effective system scaling requires high-speed inter-core communication networks. Such networks must provide both high throughput and low latency, particularly for the small data bursts characteristic of graph processing workloads. These communication capabilities enable two fundamental scaling strategies: (1) horizontal scaling through coordinated execution across large numbers of parallel heterogeneous cores, and (2) pipelined processing where sequential data streams are processed across multiple specialized cores in assembly-line fashion.
-    
-    \item \textit{Compute Node}. Multiple heterogeneous cores must be combined into a compute node performing: initialization, task launch and execution management, hardware and software resource access, program debugging, remote user network interaction, etc.
-    
-    \item \textit{Computing Complex}. Multiple nodes can be connected, achieving greater horizontal scaling, increasing heterogeneous core count, and expanding available memory for set storage. The compute complex level applies IaaS (Infrastructure as a Service) cloud approach for resource management, fully supported by developed system libraries and hardware resources.
-\end{itemize}
+where $P$ denotes a graph partitioning, $S_i$ is a storage $i$, $e(S_i,S_i)$ is the number of edges whose endpoints are both contained in $S_i$, and $ p=2\alpha=m\frac{k^{\gamma-1}}{n^\gamma}, \qquad 1\leq\gamma\leq2$.
 
-It is worth noting the positive technical effect achieved through the proposed structuring in Figure \ref{fig:system_hierarhy}: requirements for each level's function set are formed, enabling further independent modernization of each level's structure and implementation. This also enables planning research and development work.
+As noted in the original work, evaluating the complete objective function is unnecessary. Instead, it is sufficient to determine the partition whose objective value increases the most after adding the new vertex. This can be expressed as
 
-For heterogeneous cores and compute nodes, programming support is provided through C/C++ libraries and language extensions. Four levels of software functional abstraction were defined (Figure \ref{fig:functional_hierarhy}):
+\begin{equation}
+\delta g(v,S_i)=g(S_1,\ldots,S_i\cup\{v\},\ldots,S_k)-g(S_1,\ldots,S_k),
+\label{eq:fennel-delta-big}
+\end{equation}
 
-\begin{itemize}
-    \item \textit{Discrete mathematics instruction level} — a foundational set of 21 DISC machine instructions for basic set operations at the heterogeneous core level;
-    
-    \item \textit{Set description, extraction, and modification level} — language constructs that extend set processing capabilities to support more complex iterative operations. This includes the definition of composite keys and values as structured data types (using C structures, Python classes, or even JSON-like descriptions), as well as mechanisms for sequential iteration over set elements;
-    
-    \item \textit{Graph operation level} — programmatically callable functions for graph description and processing algorithms;
-    
-    \item \textit{Task management and data distribution level} — software tools for controlling and managing distributed processing resources to ensure scalability and enable pipelined execution.
-\end{itemize}
+which can be rewritten as
 
-This hierarchy of software-accessible functions into layered libraries addresses several important objectives: it ensures relative independence for future development and modernization; enables consistent representation of application tasks across different abstraction levels; and allows the formation of abstract models corresponding to each level of the system hierarchy. An important outcome of the structural analysis of the computing complex's hardware and software components should be the development of generalized system and functional models, ultimately forming an open standard for associative computations analogous to OpenCL. Consequently, this article aims not only to present the architecture and operating principles of a computing system for set and graph processing based on discrete mathematics instructions, but also to propose a conceptual framework for standardizing the abstraction levels of such heterogeneous associative systems.
+\begin{equation}
+\begin{aligned}
+\delta g(v,S_i)
+={}&
+\left[e(S_i\cup\{v\},S_i\cup\{v\})-e(S_i,S_i)\right] \\
+&-
+\left[
+p\binom{|S_i\cup\{v\}|}{2}
+-
+p\binom{|S_i|}{2}
+\right].
+\end{aligned}
+\label{eq:fennel-delta-small}
+\end{equation}
+
+Equation \ref{eq:fennel-delta-small} can be evaluated independently for each partition, assuming that each storage node is capable of performing the required computation. Since the graph is assumed to be undirected, the quantity
+$$
+e(S_i\cup\{v\},S_i\cup\{v\})-e(S_i,S_i)
+$$
+is exactly the number of edges connecting the newly added vertex $v$ to vertices already contained in partition $S_i$. The second term depends only on the partition size and can therefore be updated whenever a new vertex is assigned to the partition.
+
+Consequently, the Fennel algorithm produces graph partitions with relatively small edge cuts while requiring only modest computational resources.
+
+Offline partitioning methods generally produce higher-quality partitions but require significantly more computation time and resources. The state-of-the-art framework for offline graph partitioning is METIS, which consists of three stages:
+
+\begin{enumerate}
+    \item coarsening;
+    \item initial partitioning;
+    \item uncoarsening and refinement.
+\end{enumerate}
+
+During the uncoarsening stage, the partitioning is refined using the Kernighan--Lin (KL) algorithm. Both the coarsening and uncoarsening stages are computationally expensive, and refinement is performed multiple times during uncoarsening. However, the original METIS publication reports that, given a sufficiently good initial partitioning, the KL algorithm typically requires no more than five iterations to achieve its best refinement \cite{MetisOG}.
+
+Although the original METIS publication observes that only a small number of KL iterations are sufficient when the initial partitioning is of high quality, it does not provide a criteria for determining is such a partitioning. Since Fennel has been shown to produce high-quality partitions while operating in an online setting, this motivates the proposed approach of replacing the three-stage METIS partitioning process with Fennel, followed by occasional refinement using the KL algorithm.
+
+The remainder of this paper evaluates the effectiveness of this hybrid approach and investigates the number of KL refinement iterations required when the initial partitioning is generated by Fennel.
