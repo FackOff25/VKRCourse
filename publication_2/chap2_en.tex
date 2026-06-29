@@ -1,0 +1,11 @@
+The experiments were conducted on synthetically generated random geometric undirected graphs. For each graph size (5\,000, 10\,000, 20\,000, 50\,000, 100\,000, and 250\,000 vertices), the average vertex degree was fixed at 7, resulting in graphs of similar density while varying only the number of vertices. Each graph was partitioned into different numbers of storage nodes (4, 6, 8, 10, 12 and 16).
+
+Queries were generated as just pairs of vertices of the graph between which is needed to find a path. To imitate real query patterns as close as possibt the pairs were chosen in the following patterns:
+
+\begin{enumerate}
+    \item absolutely random pairs (40\%);
+    \item random pair that geometrically not futher than determined distance between each other (30\%);
+    \item pair in which one of verteces is considered a center of clusters (20\%);
+    \item pair within one cluster; (5\%);
+    \item random pair in determined number of edges from each other (5\%).
+\end{enumerate}

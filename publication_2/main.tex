@@ -1,0 +1,103 @@
+% !TeX encoding = utf-8
+% !TeX program = pdflatex
+%% Tsinghua Science and Technology (Tsinghua Sci Technol) - LaTeX Template
+
+\documentclass{TST}
+
+% Исправляем отступы для биографий
+\makeatletter
+% % Увеличиваем ширину области под фотографию
+\def\@TSTBIOhangwidth{1.3in}  % было 1.1in
+% Увеличиваем глубину (высоту) области под фотографию  
+\def\@TSTBIOhangdepth{1.5in}  % было 1.25in
+% Увеличиваем размер фотографии
+\def\@TSTBIOphotowidth{1.0in}  % было 1in
+\def\@TSTBIOphotodepth{1.25in}  % было 1.25in
+\makeatother
+
+
+\newcommand{\blu}[1]{\textcolor{blue}{#1}}
+
+\TSTsetup{
+type      = {Research Article},
+doi       = {xxxx},
+title     = {Combining Workload Aware Partitioning with Streaming Graph Partitioning},
+author    = {Vladimir M. Kozlov},
+runauthor = {V. M. Kozlov},
+abstract  = {
+Efficient graph partitioning is a critical factor in achieving high performance and scalability in distributed graph databases. Conventional graph partitioning methods, such as streaming graph partitioning and METIS, rely exclusively on the structural properties of the graph and do not account for graph access patterns or query workloads. As a result, these methods primarily optimize partition quality by minimizing the number of inter-storage edges (cut size). However, edges crossing storage boundaries may be frequently accessed during query execution, leading to increased communication overhead and degraded query performance. This paper presents a comparative analysis of workload-aware graph partitioning methods and their integration with streaming graph partitioning. The evaluated approaches are compared in terms of partition quality and their impact on query execution performance in distributed graph databases.
+},
+keywords  = {graph partitioning, distributed graph databases, streaming graph partitioning, Fennel, Kernighan--Lin algorithm, SCHISM, WAWPart, graph algorithms, workload aware partitioning},
+copyright = {The Author(s)},
+received  = 2026-06-14,
+revised   = 2026-06-xx,
+accepted  = 2026-06-xx,
+}
+
+% Добавьте в преамбулу документа настройки для листингов
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18} % Укажите версию совместимости
+\usepackage{tikz}
+\usepackage{graphicx}
+
+\lstset{
+   basicstyle=\fontsize{4}{5}\selectfont\ttfamily, % Экстремально маленький
+   numbers=none,
+   frame=none,
+   backgroundcolor=\color{white},
+   breaklines=true,
+   xleftmargin=0pt,
+   xrightmargin=0pt,
+   aboveskip=1pt,
+   belowskip=1pt,
+   % numbers=left,
+   % numberstyle=\tiny\color{black},   
+   columns=fullflexible,
+}
+
+% Настройка подписей листингов - выравнивание по левому краю
+\captionsetup[lstlisting]{
+    format=hang, % Выравнивание по левому краю
+    justification=raggedright, % Выравнивание по левому краю
+    singlelinecheck=false, % Не центрировать короткие подписи
+    labelfont=bf, % Жирный шрифт для метки
+    labelsep=space, % Разделитель между метки и текстом
+    skip=5pt, % Отступ от листинга
+    belowskip=5pt, % Отступ снизу
+    font=small % Размер шрифта подписи
+}
+
+\begin{document}
+
+\maketitle
+
+% % Сноска о финансировании на первой странице
+% \footnotetext{Funding: This research was supported by the Russian Science Foundation grant No. 25-11-90002, \url{https://rscf.ru/project/25-11-90002/}.}
+
+\section{Introduction}
+\input{intro_en}
+\section{Combined methods review}
+\input{chap1_en}
+
+\section{Experiments data generation}
+\input{chap2_en}
+
+\section{Experiments}
+\input{chap3_en}
+
+\section{Conclusion}
+\input{conclusion_en}
+
+\section*{Acknowledgments}
+// TODO:
+
+\section*{Declaration of Competing Interest}
+// TODO:
+
+\bibliographystyle{TSTbib}
+\bibliography{export-data}
+
+\end{document}
