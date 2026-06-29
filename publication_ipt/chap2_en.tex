@@ -1,0 +1,13 @@
+The experiments were conducted using synthetically generated random geometric graphs. Graphs containing 5\,000, 10\,000, 20\,000, 50\,000, 100\,000, and 250\,000 vertices were generated. For each graph size, the average vertex degree was fixed at 7, ensuring comparable graph density while varying only the number of vertices. Each graph was partitioned into 4, 6, 8, 10, 12, and 16 partitions, corresponding to the number of storage nodes.
+
+The workload consisted of path-finding queries, each represented by a pair of source and destination vertices. To approximate realistic graph access patterns, query pairs were generated according to the following distribution:
+
+\begin{enumerate}
+\item uniformly random source--destination pairs (40\%);
+\item random vertex pairs whose Euclidean distance does not exceed a predefined threshold defined for each graph individually (30\%);
+\item random pairs in which one vertex is selected from a predefined set of cluster centers (20\%);
+\item random pairs with both vertices belonging to the same cluster (5\%);
+\item random pairs whose shortest-path distance is equal to a predefined number of hops (5\%).
+\end{enumerate}
+
+For each graph, a workload consisting of 10\,000 queries was generated.

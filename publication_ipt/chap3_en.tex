@@ -1,0 +1,27 @@
+The primary evaluation metric was the Inter-Partition Traversal (IPT) percentage, defined as the percentage of edges in the computed query paths that crossed partition boundaries. Paths requiring an excessive number of inter-partition traversals were considered infeasible and were therefore excluded from the evaluation. For graphs partitioned using Fennel, the proportion of excluded queries was negligible (approximately 5\%). In contrast, for randomly partitioned graphs, the proportion of excluded queries occasionally reached 80\%, illustrating the poor quality of purely random partitioning.
+
+To ensure fair comparisons, all random partitionings were generated using a fixed random seed. Consequently, each graph had the same initial random partitioning across all experiments.
+
+Each graph was processed as follows. First, vertices were assigned to partitions either using the Fennel streaming partitioning algorithm or random partitioning, depending on the experimental configuration. Next, an initial refinement step was performed when applicable. The query workload was then executed. After every 1\,000 processed queries, the current partitioning was refined using the Kernighan--Lin (KL) algorithm together with the r-weight adjustments defined by the selected workload-aware method. This refinement interval was selected as a compromise between partition quality and computational overhead.
+
+Figure \ref{fig:experiments_random_res} presents the results obtained with random initial partitioning. WAWPart achieves the lowest average IPT in most experimental configurations, while Schism outperforms it in couple of individual cases.
+
+\begin{figure*}[h!t]
+\centering
+\includegraphics[width=0.9\textwidth]{columns_random_all_refinements_grid.png}
+\caption{Experimental results for random initial partitioning.}
+\label{fig:experiments_random_res}
+\end{figure*}
+
+Figure \ref{fig:experiments_fennel_res} presents the results obtained with Fennel as the initial partitioning algorithm. In this configuration, WAWPart consistently produces the highest IPT values and, in all cases, performs worse than applying no refinement at all. This behavior may be explained by the query generation strategy used in the experiments, which does not emphasize the path-prefix locality that WAWPart is designed to exploit. In contrast, Schism generally achieves the lowest IPT values, although in a few configurations its performance is comparable to or slightly worse than using no refinement. The results also indicate that for graphs partitioned into four storage nodes, workload-aware refinement has only a limited effect on IPT, suggesting that Fennel alone already provides sufficiently high partition quality in this configuration.
+
+\begin{figure*}[h!t]
+\centering
+\includegraphics[width=0.9\textwidth]{columns_fennel_all_refinements_grid.png}
+\caption{Experimental results for Fennel initial partitioning.}
+\label{fig:experiments_fennel_res}
+\end{figure*}
+
+The experimental evaluation was conducted exclusively on synthetic graphs of moderate size using a predefined query workload distribution which limits the external validity of the obtained results.. Evaluating the proposed approach on real-world graph datasets, realistic query workloads, and larger graphs remains an important direction for future research.
+
+Overall, the experimental results indicate that the combination of Fennel, Schism, and Kernighan--Lin refinement consistently provides the lowest IPT values across the evaluated workloads. These findings suggest that this combination is a promising partitioning strategy for distributed graph databases.

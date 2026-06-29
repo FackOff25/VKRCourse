@@ -1,0 +1,27 @@
+One of the methods reviewed in this paper is Schism \cite{schism}. Without considering implementation details, the core idea of Schism is to assign a special weight to each edge, referred to as the request weight (r-weight). The r-weight of an edge is increased every time the corresponding edge is traversed during query execution. As a result, frequently accessed edges gradually obtain higher weights. Instead of minimizing the number of inter-storage edges or the size of the edge cut, Schism aims to minimize the total weight of the cut. Consequently, edges with high r-weights, representing frequently accessed relationships, are more likely to be placed within the same storage node, while rarely accessed edges are allowed to remain between partitions.
+
+Another workload-aware partitioning method considered in this paper is WAWPart \cite{wawpart}. Although the original work neither explicitly discusses Schism nor compares it with WAWPart, both methods are based on the same fundamental concept: assigning r-weights to edges and increasing these weights according to query usage. The main difference is that WAWPart does not increase the weights of all traversed edges equally. Instead, the increase depends on the traversal order, with edges encountered earlier receiving larger weight increments and later edges receiving smaller increments. The partitioning objective remains the same: minimizing the total weight of the cut.
+
+The similarity between Schism and WAWPart raises the question of their relative effectiveness and whether workload-aware optimization provides significant advantages over traditional minimum-cut partitioning approaches.
+
+To exploit the optimization principles of the previously described workload-aware methods, an algorithm capable of minimizing weighted edge cuts is required. A suitable candidate is METIS \cite{MetisOG}, a state-of-the-art graph partitioning framework.
+
+METIS extensively employs the Kernighan--Lin (KL) refinement algorithm, which evaluates the benefit of moving a vertex to another partition using the following gain function:
+
+\begin{equation*}
+g_v = \sum_{(v,u) \in E \wedge P[v] \neq P[u]} w(v,u) - \sum_{(v,u) \in E \wedge P[v] = P[u]} w(v,u).
+\end{equation*}
+
+This heuristic represents the difference between the total weight of edges connecting a vertex to external partitions and the total weight of edges connecting it to its current partition. Consequently, KL naturally attempts to minimize the weighted edge cut and can therefore be applied as a refinement stage after workload information has been collected.
+
+However, METIS has relatively high computational overhead due to its multilevel coarsening, initial partitioning, and uncoarsening phases. Therefore, in this work, these phases are replaced by the streaming graph partitioning algorithm Fennel. Due to the nature of streaming partitioning, Fennel alone cannot perform workload-aware partitioning because vertices and edges are assigned during graph loading before their future access patterns are known. Workload-aware behavior can only be introduced if additional semantic information about vertices is available or if the graph is reloaded together with workload-derived information. Such approaches are beyond the scope of this paper.
+
+Our preliminary experiments indicate that Fennel produces sufficiently high-quality initial partitions, allowing KL-based refinement to converge in a relatively small number of iterations.
+
+Accordingly, the proposed partitioning process consists of three phases:
+
+\begin{enumerate}
+\item Initial graph loading, during which vertices are assigned to partitions using either Fennel or random partitioning;
+\item Workload execution, during which edge access statistics are collected;
+\item Iterative partition refinement using Schism, WAWPart, or no refinement.
+\end{enumerate}

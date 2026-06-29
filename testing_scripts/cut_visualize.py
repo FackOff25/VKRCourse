@@ -164,7 +164,7 @@ for i in range(len(storage_nums), len(axes)):
     fig.delaxes(axes[i])
 
 plt.tight_layout()
-plt.savefig(f'/home/fackoff/uniCode/VKRCourse/publication_1/figures/cuts_all_storage_grid_2cols_logscale.png', dpi=300, bbox_inches='tight')
+plt.savefig(f'{output_dir}/cuts_all_storage_grid_2cols_logscale.png', dpi=300, bbox_inches='tight')
 plt.close()
 print(f"\nСоздан общий график с сеткой 2x{max(1, n_rows)}: {output_dir}/cuts_all_storage_grid_2cols_logscale.png")
 
